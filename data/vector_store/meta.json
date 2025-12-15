@@ -1,0 +1,380 @@
+{
+  "16": {
+    "id": 16,
+    "price": 230.0,
+    "category": "Основные блюда",
+    "image_path": "/images/curry_chicken.jpg",
+    "is_vegan": 0
+  },
+  "17": {
+    "id": 17,
+    "price": 170.0,
+    "category": "Основные блюда",
+    "image_path": "/images/rice_veg.jpg",
+    "is_vegan": 1
+  },
+  "18": {
+    "id": 18,
+    "price": 120.0,
+    "category": "Холодные закуски",
+    "image_path": "/images/achuchuk.jpg",
+    "is_vegan": 1
+  },
+  "19": {
+    "id": 19,
+    "price": 130.0,
+    "category": "Холодные закуски",
+    "image_path": "/images/salad_fresh.jpg",
+    "is_vegan": 1
+  },
+  "20": {
+    "id": 20,
+    "price": 180.0,
+    "category": "Холодные закуски",
+    "image_path": "/images/salad_chicken.jpg",
+    "is_vegan": 0
+  },
+  "21": {
+    "id": 21,
+    "price": 160.0,
+    "category": "Горячие закуски",
+    "image_path": "/images/samsa_meat.jpg",
+    "is_vegan": 0
+  },
+  "22": {
+    "id": 22,
+    "price": 140.0,
+    "category": "Горячие закуски",
+    "image_path": "/images/samsa_potato.jpg",
+    "is_vegan": 1
+  },
+  "23": {
+    "id": 23,
+    "price": 200.0,
+    "category": "Горячие закуски",
+    "image_path": "/images/wings_spicy.jpg",
+    "is_vegan": 0
+  },
+  "24": {
+    "id": 24,
+    "price": 140.0,
+    "category": "Горячие закуски",
+    "image_path": "/images/hummus.jpg",
+    "is_vegan": 1
+  },
+  "25": {
+    "id": 25,
+    "price": 120.0,
+    "category": "Десерты",
+    "image_path": "/images/chakchak.jpg",
+    "is_vegan": 1
+  },
+  "26": {
+    "id": 26,
+    "price": 130.0,
+    "category": "Десерты",
+    "image_path": "/images/rice_pudding.jpg",
+    "is_vegan": 1
+  },
+  "27": {
+    "id": 27,
+    "price": 110.0,
+    "category": "Десерты",
+    "image_path": "/images/fruits.jpg",
+    "is_vegan": 1
+  },
+  "28": {
+    "id": 28,
+    "price": 80.0,
+    "category": "Напитки",
+    "image_path": "/images/kumys.jpg",
+    "is_vegan": 0
+  },
+  "29": {
+    "id": 29,
+    "price": 50.0,
+    "category": "Напитки",
+    "image_path": "/images/tea_green.jpg",
+    "is_vegan": 1
+  },
+  "30": {
+    "id": 30,
+    "price": 50.0,
+    "category": "Напитки",
+    "image_path": "/images/tea_black.jpg",
+    "is_vegan": 1
+  },
+  "46": {
+    "name": "Плов с овощами",
+    "category": "main",
+    "price": 12.5,
+    "spice_level": 0,
+    "is_vegan": 1
+  },
+  "47": {
+    "name": "Шурпа",
+    "category": "soup",
+    "price": 8.0,
+    "spice_level": 1,
+    "is_vegan": 0
+  },
+  "48": {
+    "name": "Лагман веган",
+    "category": "main",
+    "price": 14.0,
+    "spice_level": 2,
+    "is_vegan": 1
+  },
+  "49": {
+    "name": "Самса",
+    "category": "snack",
+    "price": 4.5,
+    "spice_level": 0,
+    "is_vegan": 0
+  },
+  "50": {
+    "name": "Чайный набор",
+    "category": "drink",
+    "price": 3.0,
+    "spice_level": 0,
+    "is_vegan": 1
+  },
+  "51": {
+    "name": "Салат из свежих овощей",
+    "category": "salad",
+    "price": 6.0,
+    "spice_level": 0,
+    "is_vegan": 1
+  },
+  "52": {
+    "name": "Манты",
+    "category": "main",
+    "price": 10.0,
+    "spice_level": 0,
+    "is_vegan": 0
+  },
+  "53": {
+    "name": "Пахлава",
+    "category": "dessert",
+    "price": 5.0,
+    "spice_level": 0,
+    "is_vegan": 1
+  },
+  "54": {
+    "name": "Лепешка",
+    "category": "bread",
+    "price": 1.5,
+    "spice_level": 0,
+    "is_vegan": 1
+  },
+  "55": {
+    "name": "Острый перец фаршированный",
+    "category": "snack",
+    "price": 6.5,
+    "spice_level": 3,
+    "is_vegan": 0
+  },
+  "56": {
+    "name": "Кесме",
+    "category": "main",
+    "price": 11.0,
+    "spice_level": 1,
+    "is_vegan": 1
+  },
+  "57": {
+    "name": "Куриный шашлык",
+    "category": "main",
+    "price": 13.0,
+    "spice_level": 1,
+    "is_vegan": 0
+  },
+  "58": {
+    "name": "Тахинный десерт",
+    "category": "dessert",
+    "price": 4.0,
+    "spice_level": 0,
+    "is_vegan": 1
+  },
+  "59": {
+    "name": "Суп лагман (острый)",
+    "category": "soup",
+    "price": 9.5,
+    "spice_level": 3,
+    "is_vegan": 0
+  },
+  "60": {
+    "name": "Рис с изюмом",
+    "category": "dessert",
+    "price": 5.5,
+    "spice_level": 0,
+    "is_vegan": 1
+  },
+  "1": {
+    "id": 1,
+    "price": 250.0,
+    "category": "Основные блюда",
+    "image_path": "/images/самаркандский_плов.jpg",
+    "is_vegan": 0
+  },
+  "2": {
+    "id": 2,
+    "price": 260.0,
+    "category": "Основные блюда",
+    "image_path": "/images/ферганский_плов_1.jpg",
+    "is_vegan": 0
+  },
+  "3": {
+    "id": 3,
+    "price": 200.0,
+    "category": "Основные блюда",
+    "image_path": "/images/плов_с_изюмом.jpg",
+    "is_vegan": 0
+  },
+  "4": {
+    "id": 4,
+    "price": 210.0,
+    "category": "Основные блюда",
+    "image_path": "/images/плов_с_нута.jpg",
+    "is_vegan": 0
+  },
+  "5": {
+    "id": 5,
+    "price": 180.0,
+    "category": "Основные блюда",
+    "image_path": "/images/lagman.jpg",
+    "is_vegan": 0
+  },
+  "6": {
+    "id": 6,
+    "price": 150.0,
+    "category": "Основные блюда",
+    "image_path": "/images/lagman_veg.jpg",
+    "is_vegan": 1
+  },
+  "7": {
+    "id": 7,
+    "price": 220.0,
+    "category": "Основные блюда",
+    "image_path": "/images/guiru_lagman.jpg",
+    "is_vegan": 0
+  },
+  "8": {
+    "id": 8,
+    "price": 160.0,
+    "category": "Основные блюда",
+    "image_path": "/images/manty_pumpkin.jpg",
+    "is_vegan": 1
+  },
+  "9": {
+    "id": 9,
+    "price": 280.0,
+    "category": "Основные блюда",
+    "image_path": "/images/manty_meat.jpg",
+    "is_vegan": 0
+  },
+  "10": {
+    "id": 10,
+    "price": 250.0,
+    "category": "Шашлыки",
+    "image_path": "/images/shashlik_chicken.jpg",
+    "is_vegan": 0
+  },
+  "11": {
+    "id": 11,
+    "price": 310.0,
+    "category": "Шашлыки",
+    "image_path": "/images/shashlik_lamb.jpg",
+    "is_vegan": 0
+  },
+  "12": {
+    "id": 12,
+    "price": 180.0,
+    "category": "Супы",
+    "image_path": "/images/shurpa.jpg",
+    "is_vegan": 0
+  },
+  "13": {
+    "id": 13,
+    "price": 200.0,
+    "category": "Супы",
+    "image_path": "/images/mastava.jpg",
+    "is_vegan": 0
+  },
+  "14": {
+    "id": 14,
+    "price": 140.0,
+    "category": "Супы",
+    "image_path": "/images/shurpa_veg.jpg",
+    "is_vegan": 1
+  },
+  "15": {
+    "id": 15,
+    "price": 180.0,
+    "category": "Основные блюда",
+    "image_path": "/images/curry_lentil.jpg",
+    "is_vegan": 1
+  },
+  "32": {
+    "id": 32,
+    "price": 60.0,
+    "category": "Напитки",
+    "image_path": "/images/фруктовый_чай.jpg",
+    "is_vegan": 0
+  },
+  "33": {
+    "id": 33,
+    "price": 450.0,
+    "category": "Основные блюда",
+    "image_path": "/images/стейк рыбы.jpg",
+    "is_vegan": 0
+  },
+  "34": {
+    "id": 34,
+    "price": 120.0,
+    "category": "Десерты",
+    "image_path": "/images/десерт_с_клубникой.jpg",
+    "is_vegan": 0
+  },
+  "35": {
+    "id": 35,
+    "price": 250.0,
+    "category": "Супы",
+    "image_path": "/images/борщ.jpg",
+    "is_vegan": 0
+  },
+  "36": {
+    "id": 36,
+    "price": 120.0,
+    "category": "Напитки",
+    "image_path": "/images/эспрессо_2.jpg",
+    "is_vegan": 0
+  },
+  "37": {
+    "id": 37,
+    "price": 310.0,
+    "category": "Основные блюда",
+    "image_path": "/images/dish.jpg",
+    "is_vegan": 0
+  },
+  "38": {
+    "id": 38,
+    "price": 130.0,
+    "category": "Десерты",
+    "image_path": "/images/десерт_с_ананасом.jpg",
+    "is_vegan": 0
+  },
+  "39": {
+    "id": 39,
+    "price": 230.0,
+    "category": "Горячие закуски",
+    "image_path": "/images/колбаски_барбекю.jpg",
+    "is_vegan": 0
+  },
+  "40": {
+    "id": 40,
+    "price": 150.0,
+    "category": "Горячие закуски",
+    "image_path": "/images/dish_1.jpg",
+    "is_vegan": 0
+  }
+}
