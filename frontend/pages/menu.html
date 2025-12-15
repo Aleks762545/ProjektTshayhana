@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Меню - Чайхана «У Тимура»</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/menu.css">
+</head>
+<body>
+    <!-- Шапка сайта -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <!-- Кнопка Главная слева -->
+                <a href="../index.html" class="nav-btn">Главная</a>
+                
+                <!-- Правая часть навигации -->
+                <div class="nav-right">
+                    <a href="about.html" class="nav-btn">О нас</a>
+                    <a href="contacts.html" class="nav-btn">Контакты</a>
+                    <button class="nav-btn login-btn" id="loginBtn" type="button">Войти</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="main">
+        <div class="container menu-container">
+            <!-- Заголовок страницы -->
+            <section class="menu-header">
+                <h1 class="menu-title">Наше меню</h1>
+                <p class="menu-subtitle">Выберите понравившиеся блюда из нашего разнообразного меню</p>
+            </section>
+
+            <!-- Контейнер категорий -->
+            <section class="categories-container" id="categoriesContainer">
+                <!-- Категории будут загружаться динамически -->
+                <div class="loading" id="loading">
+                    <p>Загрузка меню...</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Кнопка открытия корзины -->
+    <button class="cart-toggle" id="cartToggle" type="button">
+        <span class="cart-icon">🛒</span>
+        <span class="cart-count" id="cartCount">0</span>
+    </button>
+
+    <!-- Панель корзины -->
+    <aside class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2 class="cart-title">Ваш заказ</h2>
+            <button class="cart-close" id="cartClose" type="button">&times;</button>
+        </div>
+        
+        <div class="cart-content">
+            <div class="cart-items" id="cartItems">
+                <!-- Товары будут добавляться динамически -->
+                <div class="empty-cart" id="emptyCart">
+                    <p>Корзина пуста</p>
+                </div>
+            </div>
+            
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span class="total-label">Итого:</span>
+                    <span class="total-amount" id="totalAmount">0₽</span>
+                </div>
+                <button class="checkout-btn" id="checkoutBtn" disabled>Оформить заказ</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Подвал -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2024 Чайхана «У Тимура». Все права защищены.</p>
+                <div class="footer-links">
+                    <a href="about.html">О нас</a>
+                    <a href="contacts.html">Контакты</a>
+                    <a href="#">Политика конфиденциальности</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Модальное окно регистрации -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal" type="button">&times;</button>
+            <h2 class="modal-title">Зарегистрируйтесь чтобы получать персональные рекомендации!</h2>
+            
+            <form class="auth-form" id="authForm">
+                <div class="form-group">
+                    <label for="phone">Номер телефона *</label>
+                    <input type="tel" id="phone" name="phone" required 
+                           placeholder="+7 (999) 999-99-99">
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Имя *</label>
+                    <input type="text" id="name" name="name" required 
+                           placeholder="Ваше имя">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email (необязательно)</label>
+                    <input type="email" id="email" name="email" 
+                           placeholder="your@email.com">
+                </div>
+                
+                <button type="submit" class="submit-btn">Зарегистрироваться / Войти</button>
+            </form>
+            
+            <div class="auth-message" id="authMessage"></div>
+        </div>
+    </div>
+
+    <!-- Подключаем скрипты -->
+    <script src="../js/cart-reset.js"></script>
+    <script type="module" src="/js/menu.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,700 @@
+<!-- project_main/frontend/admin/html/menu.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Чайхана — Admin / Редактирование меню</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Общий стиль админки -->
+  <link rel="stylesheet" href="/admin/css/admin.css" />
+  <!-- Локальные правки: контрастность селектов, визуальные чипы -->
+  <style>
+    /* Контраст для селектов и опций */
+    select, option {
+      background: var(--panel);
+      color: var(--text);
+    }
+    select:focus {
+      border-color: var(--bronze);
+      box-shadow: var(--accent-glow);
+    }
+    option:checked {
+      background: var(--bronze-dark);
+      color: #fff;
+    }
+    /* Чипы выбранных значений (теги/ингредиенты) */
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .chip { background:var(--bronze); color:#0b0b0b; padding:4px 8px; font-size:12px; font-weight:700; }
+    /* Небольшие фиксы заголовка модалки */
+    #dish_modal h3 { margin:0; color:var(--muted); font-weight:700; font-size:16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar (общий для всех страниц админки) -->
+    <aside class="sidebar">
+      <div class="brand">Чайхана — Admin</div>
+      <button class="navbtn" onclick="location.href='/admin/html/orders.html'">Текущие заказы</button>
+      <button class="navbtn active" onclick="location.href='/admin/html/menu.html'">Редактирование меню</button>
+      <button class="navbtn" onclick="location.href='/admin/html/news.html'">Новости</button>
+      <button class="navbtn" onclick="location.href='/admin/html/metrics.html'">Метрики</button>
+      <div style="flex:1"></div>
+      <div class="hint">Server API: /api/...</div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <!-- Верхние сводные плитки -->
+      <section class="summary-grid" id="summary">
+        <div class="tile">
+          <h3>Всего блюд</h3>
+          <p id="summary_total_dishes">—</p>
+        </div>
+        <div class="tile">
+          <h3>Без изображений</h3>
+          <p id="summary_no_images">—</p>
+        </div>
+        <div class="tile">
+          <h3>Категорий</h3>
+          <p id="summary_categories">—</p>
+        </div>
+        <div class="tile">
+          <h3>Тегов</h3>
+          <p id="summary_tags">—</p>
+        </div>
+      </section>
+
+      <!-- Панель действий -->
+      <section class="row">
+        <button class="small-btn bronze" id="btn_reindex">Переиндексация</button>
+        <span class="hint">Обновляет векторный индекс после правок блюд</span>
+        <div class="right"></div>
+        <button class="small-btn" id="btn_new_dish">+ Новое блюдо</button>
+      </section>
+
+      <!-- Фильтры -->
+      <section class="form" id="filters_form">
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">Поиск по названию</div>
+            <input class="input" type="text" id="filter_name" placeholder="Например: лагман, шашлык...">
+          </div>
+          <div>
+            <div class="label">Категория</div>
+            <select class="input" id="filter_category">
+              <option value="">Все</option>
+            </select>
+          </div>
+          <div>
+            <div class="label">Тег</div>
+            <select class="input" id="filter_tag">
+              <option value="">Все</option>
+            </select>
+          </div>
+          <div>
+            <div class="label">Ингредиент</div>
+            <select class="input" id="filter_ingredient">
+              <option value="">Все</option>
+            </select>
+          </div>
+          <div>
+            <div class="label">Минимальная цена</div>
+            <input class="input" type="number" id="filter_price_min" placeholder="0">
+          </div>
+          <div>
+            <div class="label">Максимальная цена</div>
+            <input class="input" type="number" id="filter_price_max" placeholder="9999">
+          </div>
+          <button class="primary" id="btn_apply_filters" style="align-self:flex-end">Применить</button>
+        </div>
+        <div class="hint">Фильтры применяются на фронте, без автообновления. Нажимайте «Применить» для пересчёта.</div>
+      </section>
+
+      <!-- Грид блюд -->
+      <section class="menu-grid" id="menu_grid">
+        <!-- Карточки блюд вставляются здесь -->
+      </section>
+
+      <!-- Пагинация -->
+      <section class="row" id="pagination_row">
+        <button class="small-btn" id="btn_prev">← Предыдущая</button>
+        <span class="hint" id="page_info">Стр. — / —</span>
+        <button class="small-btn" id="btn_next">Следующая →</button>
+        <div class="right"></div>
+        <span class="hint">Постраничная навигация без автозагрузки</span>
+      </section>
+
+      <!-- Модал: создание/редактирование блюда -->
+      <section id="dish_modal" style="display:none">
+        <div class="form">
+          <div class="row">
+            <h3 id="dish_modal_title">Новое блюдо</h3>
+            <div class="right"></div>
+            <button class="small-btn" id="btn_close_modal">Закрыть</button>
+          </div>
+
+          <div class="row">
+            <div style="flex:1">
+              <div class="label">Название</div>
+              <input class="input" type="text" id="dish_name" placeholder="Название блюда">
+            </div>
+            <div>
+              <div class="label">Цена</div>
+              <input class="input" type="number" id="dish_price" step="0.01" placeholder="0.00">
+            </div>
+            <div>
+              <div class="label">Категория</div>
+              <select class="input" id="dish_category"></select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1">
+              <div class="label">Теги</div>
+              <select class="input" id="dish_tags" multiple size="4"></select>
+              <div class="chips" id="chips_tags"></div>
+            </div>
+            <div style="flex:1">
+              <div class="label">Ингредиенты</div>
+              <select class="input" id="dish_ingredients" multiple size="4"></select>
+              <div class="chips" id="chips_ingredients"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:2">
+              <div class="label">Описание</div>
+              <textarea class="input" id="dish_description" rows="4" placeholder="Краткое описание..."></textarea>
+            </div>
+            <div style="flex:1">
+              <div class="label">Изображение (URL)</div>
+              <input class="input" type="text" id="dish_image_url" placeholder="https://... или /static/images/...">
+              <div class="row" style="margin-top:8px">
+                <input class="input" type="file" id="dish_image_file" accept="image/*" />
+                <button class="small-btn bronze" id="btn_upload_image">Загрузить</button>
+              </div>
+              <div class="hint">Файл будет сохранён в /static/images с именем на основе названия блюда.</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="primary" id="btn_save_dish">Сохранить</button>
+            <button class="small-btn warn" id="btn_delete_dish" style="display:none">Удалить блюдо</button>
+            <div class="right"></div>
+            <button class="small-btn" id="btn_reindex_dish">Переиндексация</button>
+          </div>
+
+          <div class="warn" id="modal_warn" style="display:none;margin-top:8px">Поля «Название», «Цена», «Категория» обязательны.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // === Конфиг API ===
+    const API = {
+      dishes: '/api/dishes',
+      dishById: (id) => `/api/dishes/${id}`,
+      categories: '/api/categories',
+      tags: '/api/tags',
+      ingredients: '/api/ingredients',
+      uploadImage: '/api/admin/upload_image', // сохраняем в frontend/static/images
+      reindex: '/api/admin/reindex',
+    };
+
+    // === Состояние ===
+    const state = {
+      rawDishes: [],
+      filteredDishes: [],
+      pageSize: 12,
+      pageIndex: 0,
+      categories: [],
+      tags: [],
+      ingredients: [],
+      editingDishId: null,
+      lastReindexAt: null,
+    };
+
+    // === Утилиты ===
+    const qs = (sel) => document.querySelector(sel);
+    const ce = (tag) => document.createElement(tag);
+
+    function showHint(text, isWarn = false) {
+      const el = ce('div');
+      el.className = isWarn ? 'warn' : 'hint';
+      el.textContent = text;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2500);
+    }
+
+    function safeNumber(n) {
+      const x = Number(n);
+      return isNaN(x) ? 0 : x;
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+    }
+
+    function formatPrice(p) {
+      const n = safeNumber(p);
+      return n ? `${n.toFixed(2)} ₽` : '—';
+    }
+
+    // === Фильтры ===
+    function applyFilters() {
+      const name = qs('#filter_name').value.trim().toLowerCase();
+      const categoryId = qs('#filter_category').value;
+      const tagId = qs('#filter_tag').value;
+      const ingredientId = qs('#filter_ingredient').value;
+      const priceMin = safeNumber(qs('#filter_price_min').value);
+      const priceMax = safeNumber(qs('#filter_price_max').value);
+
+      state.filteredDishes = state.rawDishes.filter(d => {
+        const matchesName = name ? (String(d.name || '').toLowerCase().includes(name)) : true;
+        const matchesCategory = categoryId ? String(d.category_id || '') === String(categoryId) : true;
+        const matchesTag = tagId ? Array.isArray(d.tag_ids) && d.tag_ids.map(String).includes(String(tagId)) : true;
+        const matchesIngredient = ingredientId ? Array.isArray(d.ingredient_ids) && d.ingredient_ids.map(String).includes(String(ingredientId)) : true;
+        const price = safeNumber(d.price);
+        const matchesPriceMin = qs('#filter_price_min').value ? price >= priceMin : true;
+        const matchesPriceMax = qs('#filter_price_max').value ? price <= priceMax : true;
+        return matchesName && matchesCategory && matchesTag && matchesIngredient && matchesPriceMin && matchesPriceMax;
+      });
+
+      state.pageIndex = 0;
+      renderGrid();
+      updateSummary();
+    }
+
+    function paginate(items) {
+      const start = state.pageIndex * state.pageSize;
+      return items.slice(start, start + state.pageSize);
+    }
+
+    function getCategoryName(id) {
+      const c = state.categories.find(x => String(x.id) === String(id));
+      return c ? c.name : '—';
+    }
+    function getTagNames(ids) {
+      if (!Array.isArray(ids)) return [];
+      return ids.map(id => {
+        const t = state.tags.find(x => String(x.id) === String(id));
+        return t ? t.name : null;
+      }).filter(Boolean);
+    }
+    function getIngredientNames(ids) {
+      if (!Array.isArray(ids)) return [];
+      return ids.map(id => {
+        const i = state.ingredients.find(x => String(x.id) === String(id));
+        return i ? i.name : null;
+      }).filter(Boolean);
+    }
+
+    // === Рендеры ===
+    function updateSummary() {
+      const total = state.rawDishes.length;
+      const noImages = state.rawDishes.filter(d => !d.image_url).length;
+      qs('#summary_total_dishes').textContent = String(total);
+      qs('#summary_no_images').textContent = String(noImages);
+      qs('#summary_categories').textContent = String(state.categories.length);
+      qs('#summary_tags').textContent = String(state.tags.length);
+    }
+
+    function renderFiltersOptions() {
+      // Категории
+      const selCat = qs('#filter_category');
+      selCat.innerHTML = '<option value="">Все</option>' + state.categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+      // Теги
+      const selTag = qs('#filter_tag');
+      selTag.innerHTML = '<option value="">Все</option>' + state.tags.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+      // Ингредиенты
+      const selIng = qs('#filter_ingredient');
+      selIng.innerHTML = '<option value="">Все</option>' + state.ingredients.map(i => `<option value="${i.id}">${escapeHtml(i.name)}</option>`).join('');
+    }
+
+    function renderGrid() {
+      const grid = qs('#menu_grid');
+      grid.innerHTML = '';
+      const source = state.filteredDishes.length ? state.filteredDishes : state.rawDishes;
+      const pageItems = paginate(source);
+
+      pageItems.forEach(d => {
+        const card = ce('div');
+        card.className = 'dish-card';
+
+        const img = ce('img');
+        img.src = d.image_url || 'https://via.placeholder.com/600x400?text=No+Image';
+        img.alt = d.name || '';
+        card.appendChild(img);
+
+        const titleRow = ce('div');
+        titleRow.className = 'row';
+
+        const title = ce('div');
+        title.innerHTML = `<strong>${escapeHtml(d.name || '—')}</strong>`;
+        titleRow.appendChild(title);
+
+        const price = ce('div');
+        price.className = 'right';
+        price.textContent = formatPrice(d.price);
+        titleRow.appendChild(price);
+
+        card.appendChild(titleRow);
+
+        const meta = ce('div');
+        meta.className = 'hint';
+        const tags = getTagNames(d.tag_ids || []);
+        const ings = getIngredientNames(d.ingredient_ids || []);
+        meta.textContent = `Категория: ${getCategoryName(d.category_id)} · Теги: ${tags.join(', ') || '—'} · Ингредиенты: ${ings.join(', ') || '—'}`;
+        card.appendChild(meta);
+
+        const actions = ce('div');
+        actions.className = 'row';
+        const btnEdit = ce('button');
+        btnEdit.className = 'small-btn bronze';
+        btnEdit.textContent = 'Редактировать';
+        btnEdit.onclick = () => openDishModal(d.id);
+
+        const btnDelete = ce('button');
+        btnDelete.className = 'small-btn warn';
+        btnDelete.textContent = 'Удалить';
+        btnDelete.onclick = () => confirmDeleteDish(d.id);
+
+        actions.appendChild(btnEdit);
+        actions.appendChild(btnDelete);
+        actions.appendChild(Object.assign(ce('div'), { className: 'right' }));
+        card.appendChild(actions);
+
+        grid.appendChild(card);
+      });
+
+      const totalItems = source.length;
+      const totalPages = Math.max(1, Math.ceil(totalItems / state.pageSize));
+      qs('#page_info').textContent = `Стр. ${state.pageIndex + 1} / ${totalPages}`;
+    }
+
+    // === Модал (создание/редактирование) ===
+    async function openDishModal(id = null) {
+      state.editingDishId = id;
+      qs('#dish_modal').style.display = 'block';
+      qs('#modal_warn').style.display = 'none';
+      qs('#btn_delete_dish').style.display = id ? 'inline-block' : 'none';
+      qs('#dish_modal_title').textContent = id ? 'Редактирование блюда' : 'Новое блюдо';
+
+      // Заполнить селекты таксономий
+      renderDishFormTaxonomies();
+
+      if (id) {
+        try {
+          const res = await fetch(API.dishById(id));
+          if (!res.ok) throw new Error('Failed to load dish');
+          const d = await res.json();
+          fillDishForm(d);
+        } catch (e) {
+          showHint('Не удалось загрузить блюдо', true);
+          console.error(e);
+        }
+      } else {
+        fillDishForm({
+          name: '',
+          price: '',
+          category_id: state.categories[0]?.id || '',
+          tag_ids: [],
+          ingredient_ids: [],
+          description: '',
+          image_url: '',
+        });
+      }
+    }
+
+    function renderDishFormTaxonomies() {
+      // Категория
+      const selCat = qs('#dish_category');
+      selCat.innerHTML = state.categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+      // Теги
+      const selTags = qs('#dish_tags');
+      selTags.innerHTML = state.tags.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+      // Ингредиенты
+      const selIng = qs('#dish_ingredients');
+      selIng.innerHTML = state.ingredients.map(i => `<option value="${i.id}">${escapeHtml(i.name)}</option>`).join('');
+    }
+
+    function fillDishForm(d) {
+      qs('#dish_name').value = d.name || '';
+      qs('#dish_price').value = d.price != null ? d.price : '';
+      qs('#dish_category').value = d.category_id || '';
+
+      // Multiple selects: установить выбранные
+      const tagSel = qs('#dish_tags');
+      Array.from(tagSel.options).forEach(opt => {
+        opt.selected = Array.isArray(d.tag_ids) ? d.tag_ids.map(String).includes(String(opt.value)) : false;
+      });
+      renderSelectedChips('dish_tags','chips_tags');
+
+      const ingSel = qs('#dish_ingredients');
+      Array.from(ingSel.options).forEach(opt => {
+        opt.selected = Array.isArray(d.ingredient_ids) ? d.ingredient_ids.map(String).includes(String(opt.value)) : false;
+      });
+      renderSelectedChips('dish_ingredients','chips_ingredients');
+
+      qs('#dish_description').value = d.description || '';
+      qs('#dish_image_url').value = d.image_url || '';
+      // Сброс инпута файла
+      const fileInput = qs('#dish_image_file');
+      if (fileInput) fileInput.value = '';
+    }
+
+ function collectDishForm() {
+    const name = qs('#dish_name').value.trim();
+    const price = qs('#dish_price').value;
+    const category_id = qs('#dish_category').value;
+    const tag_ids = Array.from(qs('#dish_tags').selectedOptions).map(o => o.value);
+    const ingredient_ids = Array.from(qs('#dish_ingredients').selectedOptions).map(o => o.value);
+    const description = qs('#dish_description').value.trim();
+    const image_path = qs('#dish_image_url').value.trim(); // <-- Меняем имя
+    
+    console.log('image_path to save:', image_path);
+    
+    return { 
+    name, 
+    price: price ? Number(price) : null, 
+    category_id, 
+    tag_ids, 
+    ingredient_ids, 
+    description, 
+    image_path  // <-- Используем image_path вместо image_url
+  };
+}
+
+    function validateDishPayload(payload) {
+      const ok = Boolean(payload.name) && payload.price != null && payload.price >= 0 && Boolean(payload.category_id);
+      qs('#modal_warn').style.display = ok ? 'none' : 'block';
+      return ok;
+    }
+
+    async function saveDish() {
+      const payload = collectDishForm();
+      if (!validateDishPayload(payload)) {
+        showHint('Заполните обязательные поля', true);
+        return;
+      }
+
+      try {
+        let res;
+        if (state.editingDishId) {
+          res = await fetch(API.dishById(state.editingDishId), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+        } else {
+          res = await fetch(API.dishes, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+        }
+        if (!res.ok) throw new Error('Save failed');
+
+        showHint('Блюдо сохранено');
+        await reloadDishes();
+        closeDishModal();
+      } catch (e) {
+        showHint('Ошибка сохранения блюда', true);
+        console.error(e);
+      }
+    }
+
+    async function confirmDeleteDish(id) {
+      const ok = confirm('Удалить блюдо? Это действие нельзя отменить.');
+      if (!ok) return;
+      try {
+        const res = await fetch(API.dishById(id), { method: 'DELETE' });
+        if (!res.ok) throw new Error('Delete failed');
+        showHint('Блюдо удалено');
+        await reloadDishes();
+      } catch (e) {
+        showHint('Ошибка удаления блюда', true);
+        console.error(e);
+      }
+    }
+
+    function closeDishModal() {
+      state.editingDishId = null;
+      qs('#dish_modal').style.display = 'none';
+    }
+
+    // === Визуальные чипы ===
+    function renderSelectedChips(selectId, targetId) {
+      const sel = document.getElementById(selectId);
+      const target = document.getElementById(targetId);
+      if (!sel || !target) return;
+      target.innerHTML = '';
+      Array.from(sel.selectedOptions).forEach(opt => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = opt.text;
+        target.appendChild(chip);
+      });
+    }
+
+    // === Загрузка изображения ===
+    function generateImageFileName(dishName, file) {
+      const base = dishName.trim().toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zа-я0-9_]/gi, '');
+      const ext = file.name.split('.').pop().toLowerCase();
+      return `${base}.${ext}`;
+    }
+
+   async function uploadImage() {
+    const fileInput = qs('#dish_image_file');
+    const dishName = qs('#dish_name').value.trim();
+    
+    if (!fileInput.files || !fileInput.files[0]) {
+        showHint('Выберите файл изображения', true);
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    const filename = generateImageFileName(dishName || 'dish', file);
+    const formData = new FormData();
+    
+    // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: меняем 'image' на 'file'
+    formData.append('file', file);  // Было: 'image', стало: 'file'
+    formData.append('filename', filename);
+    
+    console.log('Uploading:', file.name, 'as param: file'); // Для отладки
+    
+    try {
+        const res = await fetch(API.uploadImage, { 
+            method: 'POST', 
+            body: formData 
+        });
+        
+        console.log('Status:', res.status);
+        
+        if (!res.ok) {
+            const errText = await res.text();
+            console.error('Error response:', errText);
+            throw new Error(`Upload failed: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log('Success:', data);
+        
+        qs('#dish_image_url').value = data.image_path;
+        showHint('Изображение загружено');
+        
+    } catch (e) {
+        console.error('Upload error:', e);
+        showHint(`Ошибка загрузки: ${e.message}`, true);
+    }
+}
+
+    // === Переиндексация ===
+    async function triggerReindex() {
+      try {
+        const res = await fetch(API.reindex, { method: 'POST' });
+        if (!res.ok) throw new Error('Reindex failed');
+        state.lastReindexAt = new Date();
+        showHint('Переиндексация запущена');
+      } catch (e) {
+        showHint('Ошибка переиндексации', true);
+        console.error(e);
+      }
+    }
+    async function triggerReindexAfterSave() {
+      await triggerReindex();
+    }
+
+    // === Загрузка данных ===
+    async function reloadDishes() {
+      try {
+        const res = await fetch(API.dishes);
+        if (!res.ok) throw new Error('Failed to load dishes');
+        const arr = await res.json();
+        state.rawDishes = Array.isArray(arr) ? arr : (arr.items || []);
+        state.filteredDishes = [];
+        state.pageIndex = 0;
+        renderGrid();
+        updateSummary();
+      } catch (e) {
+        showHint('Ошибка загрузки блюд', true);
+        console.error(e);
+      }
+    }
+
+    async function loadTaxonomies() {
+      try {
+        const [catsRes, tagsRes, ingRes] = await Promise.all([
+          fetch(API.categories),
+          fetch(API.tags),
+          fetch(API.ingredients),
+        ]);
+        if (!catsRes.ok || !tagsRes.ok || !ingRes.ok) throw new Error('Taxonomies load failed');
+
+        state.categories = await catsRes.json();
+        state.tags = await tagsRes.json();
+        state.ingredients = await ingRes.json();
+
+        renderFiltersOptions();
+        updateSummary();
+      } catch (e) {
+        showHint('Ошибка загрузки таксономий', true);
+        console.error(e);
+      }
+    }
+
+    // === События ===
+    function bindEvents() {
+      // Верхняя панель
+      qs('#btn_reindex').onclick = triggerReindex;
+      qs('#btn_new_dish').onclick = () => openDishModal(null);
+      qs('#btn_apply_filters').onclick = applyFilters;
+
+      // Пагинация
+      qs('#btn_prev').onclick = () => {
+        if (state.pageIndex > 0) {
+          state.pageIndex--;
+          renderGrid();
+        }
+      };
+      qs('#btn_next').onclick = () => {
+        const source = state.filteredDishes.length ? state.filteredDishes : state.rawDishes;
+        const totalPages = Math.max(1, Math.ceil(source.length / state.pageSize));
+        if (state.pageIndex < totalPages - 1) {
+          state.pageIndex++;
+          renderGrid();
+        }
+      };
+
+      // Модал
+      qs('#btn_close_modal').onclick = closeDishModal;
+      qs('#btn_save_dish').onclick = saveDish;
+      qs('#btn_delete_dish').onclick = () => {
+        if (state.editingDishId) confirmDeleteDish(state.editingDishId);
+      };
+      qs('#btn_upload_image').onclick = uploadImage;
+      qs('#btn_reindex_dish').onclick = triggerReindexAfterSave;
+
+      // Чипы при изменении селектов (в модалке)
+      document.addEventListener('change', (e) => {
+        if (e.target && e.target.id === 'dish_tags') {
+          renderSelectedChips('dish_tags','chips_tags');
+        }
+        if (e.target && e.target.id === 'dish_ingredients') {
+          renderSelectedChips('dish_ingredients','chips_ingredients');
+        }
+      });
+    }
+
+    // === Init ===
+    (async function init() {
+      bindEvents();
+      await loadTaxonomies();
+      await reloadDishes();
+    })();
+  </script>
+</body>
+</html>

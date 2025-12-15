@@ -1,0 +1,265 @@
+/* СТИЛИ ДЛЯ СТРАНИЦЫ АУТЕНТИФИКАЦИИ */
+
+.auth-main {
+    padding: 350px 20px 50px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - var(--header-height)); /* Фиксируем высоту */
+    overflow-y: auto; /* Добавляем прокрутку */
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+    padding-bottom: 50px; /* Отступ снизу для удобной прокрутки */
+}
+
+.auth-form {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-header h2 {
+    font-family: var(--heading-font);
+    color: var(--light-text);
+    margin-bottom: 10px;
+    font-size: 2rem;
+}
+
+.auth-header p {
+    color: var(--light-text);
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* ФОРМЫ */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: var(--light-text);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: var(--light-text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+}
+
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ЧЕКБОКСЫ */
+.checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-top: 2px;
+}
+
+.checkbox-group label {
+    margin: 0;
+    font-weight: normal;
+    line-height: 1.4;
+}
+
+/* ОПЦИИ ФОРМЫ */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+/* КНОПКА АУТЕНТИФИКАЦИИ */
+.btn-auth {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent-color);
+    color: var(--dark-text);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-auth:hover {
+    background: #ffed4a;
+}
+
+.btn-auth:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+.btn-text, .btn-loading {
+    transition: opacity 0.3s ease;
+}
+
+/* ССЫЛКИ */
+.link {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.link:hover {
+    color: #ffed4a;
+    text-decoration: underline;
+}
+
+/* ФУТЕР ФОРМЫ */
+.auth-footer {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-footer p {
+    color: var(--light-text);
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* СООБЩЕНИЯ ОБ ОШИБКАХ */
+.error-message {
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    min-height: 18px;
+}
+
+/* УСПЕШНАЯ РЕГИСТРАЦИЯ */
+.auth-success {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: #4CAF50;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: white;
+    margin: 0 auto 20px;
+    animation: successScale 0.5s ease;
+}
+
+@keyframes successScale {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.auth-success h2 {
+    font-family: var(--heading-font);
+    color: var(--light-text);
+    margin-bottom: 15px;
+}
+
+.auth-success p {
+    color: var(--light-text);
+    opacity: 0.8;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+/* МАСКА ДЛЯ ТЕЛЕФОНА */
+input[type="tel"] {
+    font-family: monospace;
+}
+
+/* АДАПТИВНОСТЬ */
+@media (max-width: 768px) {
+    .auth-main {
+        padding: 100px 15px 30px;
+    }
+    
+    .auth-form {
+        padding: 30px 25px;
+    }
+    
+    .auth-header h2 {
+        font-size: 1.7rem;
+    }
+    
+    .form-options {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-form {
+        padding: 25px 20px;
+    }
+    
+    .auth-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .form-group input {
+        padding: 12px;
+    }
+    
+    .btn-auth {
+        padding: 12px;
+    }
+    
+    .checkbox-group {
+        align-items: flex-start;
+    }
+    
+    .checkbox-group label {
+        font-size: 0.9rem;
+    }
+}

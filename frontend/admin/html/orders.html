@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Чайхана — Admin / Заказы</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .order-status-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      display: inline-block;
+      margin-left: 8px;
+    }
+    .status-ожидает { background: rgba(255, 152, 0, 0.1); color: #ff9800; border-left: 3px solid #ff9800; }
+    .status-готовится { background: rgba(33, 150, 243, 0.1); color: #2196f3; border-left: 3px solid #2196f3; }
+    .status-готов { background: rgba(76, 175, 80, 0.1); color: #4caf50; border-left: 3px solid #4caf50; }
+    .status-выдан { background: rgba(158, 158, 158, 0.1); color: #9e9e9e; border-left: 3px solid #9e9e9e; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">Чайхана — Admin</div>
+    <button class="navbtn active" onclick="location.href='/admin/html/orders.html'">Текущие заказы</button>
+    <button class="navbtn" onclick="location.href='/admin/html/menu.html'">Редактирование меню</button>
+    <button class="navbtn" onclick="location.href='/admin/html/news.html'">Новости</button>
+    <button class="navbtn" onclick="location.href='/admin/html/metrics.html'">Метрики</button>
+    <div style="flex:1"></div>
+    <div class="hint">Server API: /api/...</div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <h2>Управление заказами</h2>
+    <div class="row">
+      <button class="small-btn bronze" onclick="loadOrders()">Обновить</button>
+      <select id="sortSelect" class="input right" onchange="renderOrders()">
+        <option value="time">Сортировать по времени</option>
+        <option value="status">Сортировать по статусу</option>
+      </select>
+    </div>
+
+    <div class="orders-layout">
+      <div class="orders-col" id="ordersList">
+        <!-- Заказы будут рендериться сюда -->
+      </div>
+      <div class="orders-col" id="orderDetails">
+        <h3>Детали заказа</h3>
+        <div id="detailsContent" class="hint">Выберите заказ слева</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// === КОНСТАНТЫ ===
+const API = {
+    orders: '/api/orders',
+    orderDetails: (id) => `/api/orders/${id}/details`,
+    updateStatus: (id) => `/api/orders/${id}/status`,
+    deleteOrder: (id) => `/api/orders/${id}`
+};
+
+// Полная карта всех возможных статусов
+const STATUS_MAP = {
+    // Английские (из БД)
+    'pending': { api: 'ожидает', display: 'ожидает', next: 'cooking' },
+    'cooking': { api: 'готовится', display: 'готовится', next: 'ready' },
+    'ready': { api: 'готов', display: 'готов', next: 'completed' },
+    'completed': { api: 'выдан', display: 'выдан', next: null },
+    
+    // Русские (могут вернуться от API)
+    'ожидает': { api: 'ожидает', display: 'ожидает', next: 'cooking', db: 'pending' },
+    'готовится': { api: 'готовится', display: 'готовится', next: 'ready', db: 'cooking' },
+    'готов': { api: 'готов', display: 'готов', next: 'completed', db: 'ready' },
+    'выдан': { api: 'выдан', display: 'выдан', next: null, db: 'completed' }
+};
+
+let orders = [];
+let dishesCache = {};
+
+// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+function showHint(text, isWarn = false) {
+    const hint = document.createElement('div');
+    hint.className = isWarn ? 'warn' : 'hint';
+    hint.textContent = text;
+    hint.style.position = 'fixed';
+    hint.style.top = '20px';
+    hint.style.right = '20px';
+    hint.style.zIndex = '1000';
+    document.body.appendChild(hint);
+    setTimeout(() => hint.remove(), 3000);
+}
+
+// Нормализует статус к английскому формату (для внутренней логики)
+function normalizeToEnglish(status) {
+    if (STATUS_MAP[status] && STATUS_MAP[status].db) {
+        return STATUS_MAP[status].db; // Уже есть английский эквивалент
+    }
+    // Ищем обратное соответствие
+    for (const [eng, data] of Object.entries(STATUS_MAP)) {
+        if (data.api === status || data.display === status) {
+            return eng;
+        }
+    }
+    return status; // Если не нашли, оставляем как есть
+}
+
+// Получает следующий статус в английском формате
+function getNextEnglishStatus(currentStatus) {
+    const normalized = normalizeToEnglish(currentStatus);
+    return STATUS_MAP[normalized]?.next || null;
+}
+
+// Конвертирует в русский для API
+function convertToRussianForApi(englishStatus) {
+    const normalized = normalizeToEnglish(englishStatus);
+    return STATUS_MAP[normalized]?.api || englishStatus;
+}
+
+// Получает русское название для отображения
+function getDisplayStatus(anyStatus) {
+    const normalized = normalizeToEnglish(anyStatus);
+    return STATUS_MAP[normalized]?.display || anyStatus;
+}
+
+// === ОСНОВНЫЕ ФУНКЦИИ ===
+async function loadDishes() {
+    try {
+        const res = await fetch('/api/dishes');
+        const data = await res.json();
+        dishesCache = {};
+        data.forEach(d => dishesCache[d.id] = d.name);
+    } catch(e) {
+        console.error('Ошибка загрузки блюд', e);
+    }
+}
+
+async function loadOrders() {
+    try {
+        const res = await fetch('/api/orders');
+        orders = await res.json();
+        
+        // Отладочная информация
+        console.log('=== ЗАГРУЖЕННЫЕ ЗАКАЗЫ ===');
+        orders.forEach((order, i) => {
+            console.log(`Заказ ${i+1}: ID=${order.id}, Статус="${order.status}", Нормализованный="${normalizeToEnglish(order.status)}"`);
+        });
+        
+        renderOrders();
+    } catch(e) {
+        console.error('Ошибка загрузки заказов', e);
+    }
+}
+
+function renderOrders() {
+    const sortMode = document.getElementById('sortSelect').value;
+    let sorted = [...orders];
+    
+    // Сортировка по нормализованным статусам
+    if (sortMode === 'time') {
+        sorted.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (sortMode === 'status') {
+        sorted.sort((a,b) => {
+            const aNorm = normalizeToEnglish(a.status);
+            const bNorm = normalizeToEnglish(b.status);
+            return aNorm.localeCompare(bNorm);
+        });
+    }
+
+    const list = document.getElementById('ordersList');
+    list.innerHTML = '';
+    
+    sorted.forEach(o => {
+        const card = document.createElement('div');
+        card.className = 'order-card';
+        
+        const displayStatus = getDisplayStatus(o.status);
+        const isCompleted = normalizeToEnglish(o.status) === 'completed';
+        
+        card.innerHTML = `
+            <div class="meta">
+                <div>
+                    <span style="font-weight:700">#${o.id}</span>
+                    <span class="order-status-badge status-${displayStatus}">
+                        ${displayStatus}
+                    </span>
+                </div>
+                <span>${new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+            
+            <div class="items">
+                ${(o.items||[]).map(it => `
+                    <div style="font-size:12px">
+                        ${dishesCache[it.dish_id] || ('Блюдо '+it.dish_id)} × ${it.quantity}
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="row">
+                <button class="small-btn bronze" onclick="showDetails(${o.id})">
+                    Подробнее
+                </button>
+                ${!isCompleted ? `
+                    <button class="small-btn" onclick="updateOrderStatus(${o.id})">
+                        Сменить статус
+                    </button>
+                ` : ''}
+                ${isCompleted ? `
+                    <button class="small-btn warn" onclick="deleteOrder(${o.id})" style="margin-left:auto">
+                        Удалить
+                    </button>
+                ` : ''}
+            </div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+// === ФУНКЦИЯ СМЕНЫ СТАТУСА ===
+async function updateOrderStatus(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) {
+        showHint('Заказ не найден', true);
+        return;
+    }
+    
+    console.log('Текущий статус (сырой):', order.status);
+    console.log('Нормализованный:', normalizeToEnglish(order.status));
+    
+    // Получаем следующий статус в английском формате
+    const nextEnglishStatus = getNextEnglishStatus(order.status);
+    if (!nextEnglishStatus) {
+        showHint('Заказ уже завершен', true);
+        return;
+    }
+    
+    // Конвертируем для API
+    const nextApiStatus = convertToRussianForApi(nextEnglishStatus);
+    const nextDisplayStatus = getDisplayStatus(nextEnglishStatus);
+    const currentDisplayStatus = getDisplayStatus(order.status);
+    
+    console.log('Следующий статус:', {
+        db: nextEnglishStatus,
+        api: nextApiStatus,
+        display: nextDisplayStatus
+    });
+    
+    // Подтверждение
+   
+    
+  
+    
+    try {
+        console.log('Отправляем на API:', { status: nextApiStatus });
+        
+        const response = await fetch(API.updateStatus(orderId), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: nextApiStatus })
+        });
+        
+        console.log('Ответ сервера:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Ответ от сервера:', data);
+            
+            // После успешного обновления, загружаем свежие данные
+            // чтобы получить актуальный статус с сервера
+            await loadOrders();
+            
+            // Показываем уведомление
+            showHint(`Статус заказа #${orderId} изменен: "${currentDisplayStatus}" → "${nextDisplayStatus}"`);
+            
+        } else {
+            const errorText = await response.text();
+            console.error('Ошибка сервера:', errorText);
+            showHint(`Ошибка: ${errorText}`, true);
+        }
+    } catch (e) {
+        console.error('Ошибка сети:', e);
+        showHint('Ошибка соединения с сервером', true);
+    }
+}
+
+// === ФУНКЦИЯ УДАЛЕНИЯ ===
+async function deleteOrder(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    const isCompleted = order && normalizeToEnglish(order.status) === 'completed';
+    
+    if (!order || !isCompleted) {
+        showHint('Можно удалять только выданные заказы', true);
+        return;
+    }
+    
+    if (!confirm(`Удалить заказ #${orderId}? Это действие нельзя отменить.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(API.deleteOrder(orderId), {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            orders = orders.filter(o => o.id !== orderId);
+            renderOrders();
+            document.getElementById('detailsContent').innerHTML = 
+                '<div class="hint">Заказ удален. Выберите другой заказ.</div>';
+            showHint(`Заказ #${orderId} удален`);
+        } else {
+            const errorText = await response.text();
+            showHint(`Ошибка удаления: ${errorText}`, true);
+        }
+    } catch (e) {
+        console.error('Ошибка удаления заказа:', e);
+        showHint('Ошибка удаления заказа', true);
+    }
+}
+
+// === ФУНКЦИЯ ПОКАЗА ДЕТАЛЕЙ ===
+async function showDetails(orderId) {
+    try {
+        const response = await fetch(API.orderDetails(orderId));
+        if (!response.ok) throw new Error('Failed to load details');
+        
+        const order = await response.json();
+        const details = document.getElementById('detailsContent');
+        
+        const displayStatus = getDisplayStatus(order.status);
+        const isCompleted = normalizeToEnglish(order.status) === 'completed';
+        
+        details.innerHTML = `
+            <div style="padding:8px">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+                    <h3 style="margin:0">Заказ #${order.id}</h3>
+                    <span class="order-status-badge status-${displayStatus}">
+                        ${displayStatus}
+                    </span>
+                </div>
+                
+                <div style="margin-bottom:12px">
+                    <div style="font-size:12px; color:var(--muted); margin-bottom:4px">Клиент</div>
+                    <div><strong>${order.guest_name || 'Гость'}</strong> ${order.guest_phone ? `<br>${order.guest_phone}` : ''}</div>
+                </div>
+                
+                <div style="margin-bottom:12px">
+                    <div style="font-size:12px; color:var(--muted); margin-bottom:4px">Стол</div>
+                    <div style="font-weight:700">№ ${order.table_number}</div>
+                </div>
+                
+                <div style="margin-bottom:12px">
+                    <div style="font-size:12px; color:var(--muted); margin-bottom:4px">Создан</div>
+                    <div>${new Date(order.created_at).toLocaleString()}</div>
+                </div>
+                
+                ${order.completed_at ? `
+                    <div style="margin-bottom:12px">
+                        <div style="font-size:12px; color:var(--muted); margin-bottom:4px">Завершен</div>
+                        <div>${new Date(order.completed_at).toLocaleString()}</div>
+                    </div>
+                ` : ''}
+                
+                <div style="margin-bottom:16px">
+                    <div style="font-size:14px; font-weight:600; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px">
+                        Состав заказа
+                    </div>
+                    ${order.items && order.items.length > 0 ? 
+                        order.items.map(item => `
+                            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #222;">
+                                <span>${item.dish_name || `Блюдо #${item.dish_id}`}</span>
+                                <span>${item.quantity} × ${item.dish_price || 0} ₽ = ${item.quantity * (item.dish_price || 0)} ₽</span>
+                            </div>
+                        `).join('') 
+                        : '<div class="hint">Нет блюд в заказе</div>'
+                    }
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:12px; border-top:1px solid var(--border);">
+                    <div style="font-weight:700; font-size:16px">Итого: ${order.total || 0} ₽</div>
+                    <div>
+                        ${!isCompleted ? `
+                            <button class="small-btn" onclick="updateOrderStatus(${order.id})" style="margin-right:8px">
+                                Сменить статус
+                            </button>
+                        ` : ''}
+                        ${isCompleted ? `
+                            <button class="small-btn warn" onclick="deleteOrder(${order.id})">
+                                Удалить заказ
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+    } catch (e) {
+        console.error('Ошибка загрузки деталей:', e);
+        document.getElementById('detailsContent').innerHTML = 
+            '<div class="hint" style="padding:20px; text-align:center">Ошибка загрузки деталей заказа</div>';
+    }
+}
+
+// === ИНИЦИАЛИЗАЦИЯ ===
+loadDishes().then(loadOrders);
+
+// Автообновление каждые 30 секунд
+setInterval(loadOrders, 30000);
+</script>
+</body>
+</html>

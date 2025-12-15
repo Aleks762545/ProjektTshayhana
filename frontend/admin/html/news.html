@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Чайхана — Admin / Новости</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">Чайхана — Admin</div>
+    <button class="navbtn" onclick="location.href='/admin/html/orders.html'">Текущие заказы</button>
+    <button class="navbtn" onclick="location.href='/admin/html/menu.html'">Редактирование меню</button>
+    <button class="navbtn active" onclick="location.href='/admin/html/news.html'">Новости</button>
+    <button class="navbtn" onclick="location.href='/admin/html/metrics.html'">Метрики</button>
+    <div style="flex:1"></div>
+    <div class="hint">Server API: /api/...</div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <h2>Новости</h2>
+
+    <!-- Форма добавления -->
+    <form class="form" onsubmit="addNews(event)">
+      <label class="label">Заголовок</label>
+      <input type="text" id="newsTitle" class="input" required>
+      <label class="label">Текст</label>
+      <textarea id="newsText" rows="4" required></textarea>
+      <button type="submit" class="primary">Добавить новость</button>
+    </form>
+
+    <!-- Список новостей -->
+    <div class="orders-col" style="margin-top:14px">
+      <h3>Текущие новости</h3>
+      <div id="newsList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+let news = [];
+
+// Загрузка новостей
+async function loadNews() {
+  try {
+    const res = await fetch('/api/news');
+    news = await res.json();
+    renderNews();
+  } catch(e) {
+    console.error('Ошибка загрузки новостей', e);
+  }
+}
+
+// Рендер списка
+function renderNews() {
+  const list = document.getElementById('newsList');
+  list.innerHTML = '';
+  if (!news.length) {
+    list.innerHTML = '<div class="hint">Новостей пока нет</div>';
+    return;
+  }
+  news.forEach(n => {
+    const card = document.createElement('div');
+    card.className = 'order-card';
+    card.innerHTML = `
+      <div class="meta">
+        <span><b>${n.title||'Без заголовка'}</b></span>
+        <span>${new Date(n.created_at||Date.now()).toLocaleString()}</span>
+      </div>
+      <p>${n.text||''}</p>
+      <div class="row">
+        <button class="small-btn" onclick="deleteNews(${n.id})">Удалить</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// Добавление новости
+async function addNews(e) {
+  e.preventDefault();
+  const title = document.getElementById('newsTitle').value.trim();
+  const text = document.getElementById('newsText').value.trim();
+  if (!title || !text) return;
+
+  try {
+    await fetch('/api/news', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({title, text})
+    });
+    document.getElementById('newsTitle').value = '';
+    document.getElementById('newsText').value = '';
+    loadNews();
+  } catch(e) {
+    console.error('Ошибка добавления новости', e);
+  }
+}
+
+// Удаление новости (заглушка)
+async function deleteNews(id) {
+  alert('Новость '+id+' удалена (заглушка)');
+  // TODO: заменить на реальный DELETE /news/{id}
+  news = news.filter(n => n.id !== id);
+  renderNews();
+}
+
+// Инициализация
+loadNews();
+</script>
+</body>
+</html>

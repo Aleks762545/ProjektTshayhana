@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Чайхана — Admin / Метрики</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">Чайхана — Admin</div>
+    <button class="navbtn" onclick="location.href='/admin/html/orders.html'">Текущие заказы</button>
+    <button class="navbtn" onclick="location.href='/admin/html/menu.html'">Редактирование меню</button>
+    <button class="navbtn" onclick="location.href='/admin/html/news.html'">Новости</button>
+    <button class="navbtn active" onclick="location.href='/admin/html/metrics.html'">Метрики</button>
+    <div style="flex:1"></div>
+    <div class="hint">Server API: /api/...</div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <h2>Метрики</h2>
+
+    <!-- Summary tiles -->
+    <div class="summary-grid">
+      <div class="tile"><h3>Всего заказов</h3><p id="ordersCount">0</p></div>
+      <div class="tile"><h3>Сумма заказов</h3><p id="ordersTotal">0</p></div>
+      <div class="tile"><h3>Блюд в меню</h3><p id="dishesCount">0</p></div>
+      <div class="tile"><h3>Уникальных гостей</h3><p id="guestsCount">0</p></div>
+    </div>
+
+    <!-- Chart -->
+    <div class="orders-col" style="margin-top:14px">
+      <h3>Заказы по датам</h3>
+      <canvas id="ordersChart" style="width:100%;height:240px"></canvas>
+    </div>
+  </main>
+</div>
+
+<script>
+async function loadMetrics() {
+  try {
+    const [ordersRes, dishesRes] = await Promise.all([
+      fetch('/api/orders'),
+      fetch('/api/dishes')
+    ]);
+    const orders = await ordersRes.json();
+    const dishes = await dishesRes.json();
+
+    // Summary
+    document.getElementById('ordersCount').textContent = orders.length;
+    document.getElementById('ordersTotal').textContent = orders.reduce((sum,o)=>sum+o.total,0).toFixed(2);
+    document.getElementById('dishesCount').textContent = dishes.length;
+    const guests = new Set(orders.map(o=>o.guest_id).filter(Boolean));
+    document.getElementById('guestsCount').textContent = guests.size;
+
+    // Orders by date
+    const byDate = {};
+    orders.forEach(o=>{
+      const d = o.created_at.split(' ')[0]; // YYYY-MM-DD
+      byDate[d] = (byDate[d]||0)+1;
+    });
+    const labels = Object.keys(byDate).sort();
+    const values = labels.map(l=>byDate[l]);
+
+    renderChart(labels, values);
+  } catch(e) {
+    console.error('Ошибка загрузки метрик', e);
+  }
+}
+
+function renderChart(labels, values) {
+  const canvas = document.getElementById('ordersChart');
+  const ctx = canvas.getContext('2d');
+
+  // Подгоняем размер под контейнер
+  canvas.width = canvas.clientWidth;
+  canvas.height = 240;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const maxVal = Math.max(...values);
+  const padding = 40;
+  const chartHeight = canvas.height - padding*2;
+  const chartWidth = canvas.width - padding*2;
+  const stepX = chartWidth / (labels.length-1 || 1);
+
+  // Сетка по Y
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 1;
+  const stepsY = 5;
+  for(let i=0;i<=stepsY;i++){
+    const y = canvas.height - padding - (i/stepsY)*chartHeight;
+    ctx.beginPath();
+    ctx.moveTo(padding,y);
+    ctx.lineTo(canvas.width-padding,y);
+    ctx.stroke();
+    const val = Math.round((i/stepsY)*maxVal);
+    ctx.fillStyle = '#888';
+    ctx.font = '12px Inter';
+    ctx.fillText(val, 5, y+4);
+  }
+
+  // Оси
+  ctx.strokeStyle = '#555';
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, canvas.height-padding);
+  ctx.lineTo(canvas.width-padding, canvas.height-padding);
+  ctx.stroke();
+
+  // Линия графика
+  ctx.strokeStyle = '#cd7f32';
+  ctx.beginPath();
+  values.forEach((v,i)=>{
+    const x = padding + i*stepX;
+    const y = canvas.height - padding - (v/maxVal)*chartHeight;
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+    // Точка
+    ctx.fillStyle = '#d8923c';
+    ctx.beginPath();
+    ctx.arc(x,y,4,0,Math.PI*2);
+    ctx.fill();
+  });
+  ctx.stroke();
+
+  // Подписи по оси X
+  ctx.fillStyle = '#bfbfbf';
+  ctx.font = '12px Inter';
+  labels.forEach((l,i)=>{
+    const x = padding + i*stepX;
+    ctx.fillText(l, x-20, canvas.height-padding+16);
+  });
+}
+
+// Перерисовка при ресайзе
+window.addEventListener('resize', ()=>loadMetrics());
+
+// Инициализация
+loadMetrics();
+</script>
+</body>
+</html>

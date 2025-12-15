@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Заказ с ИИ</title>
+
+<!-- Подключение CSS как в меню -->
+<link rel="stylesheet" href="../css/main.css" />
+<link rel="stylesheet" href="../css/menu.css" />
+
+<style>
+  /* ===== НАСТРОЙКИ ЦВЕТОВ И ТЕМЫ ===== */
+  :root {
+    /* Основные цвета темы */
+    --color-primary: #131313;
+    --color-secondary: #2a2a2a;
+    --color-surface: rgba(29, 29, 29, 0.95);
+    --color-card: rgba(45, 45, 45, 0.8);
+    
+    /* Акцентные цвета (оранжевая гамма) */
+    --color-accent: #b56c28;
+    --color-accent-hover: #b56c28;
+    --color-accent-light: rgba(249, 115, 22, 0.1);
+    
+    /* Текст */
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #94a3b8;
+    
+    /* Границы и тени */
+    --color-border: #553d33;
+    --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    --shadow-elevated: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+    
+    /* Радиусы */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    
+    /* Анимации */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 350ms ease;
+  }
+  
+  /* ===== БАЗОВЫЕ СТИЛИ ===== */
+  body.page {
+    background-image: url('../assets/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow-x: hidden; /* Предотвращаем горизонтальный скролл при сдвиге */
+  }
+  
+  /* ===== ОСНОВНОЙ КОНТЕЙНЕР ===== */
+  .ai-page-wrapper {
+    width: 100%;
+    max-width: 800px;
+    height: 72vh;
+    min-height: 600px;
+    max-height: 800px;
+    margin: 40px auto;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    transition: transform 0.3s ease, margin-right 0.3s ease;
+    will-change: transform; /* Оптимизация анимации */
+  }
+  
+  /* Когда корзина открыта - сдвигаем чат влево */
+  body.cart-open .ai-page-wrapper {
+    transform: translateX(-200px);
+    margin-right: 400px;
+  }
+  
+  /* ===== КОНТЕЙНЕР ЧАТА ===== */
+  .ai-chat-card {
+    width: 100%;
+    height: 100%;
+    background: var(--color-surface);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: all var(--transition-base);
+    overflow: hidden;
+  }
+  
+  .ai-chat-card.with-recs {
+    margin-bottom: 300px;
+  }
+  
+  /* Заголовок чата */
+  .ai-chat-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--color-border);
+    background: rgba(22, 22, 22, 0.8);
+    flex-shrink: 0;
+  }
+  
+  .ai-chat-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .ai-chat-title::before {
+    content: "";
+    font-size: 20px;
+  }
+  
+  .ai-chat-subtitle {
+    color: var(--color-text-muted);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  
+  /* Область сообщений */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    scroll-behavior: smooth;
+  }
+  
+  /* Кастомный скроллбар */
+  .messages::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .messages::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .messages::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+  
+  .messages::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+  }
+  
+  /* Сообщения */
+  .message {
+    max-width: 75%;
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    line-height: 1.5;
+    animation: fadeIn var(--transition-fast);
+    position: relative;
+    word-wrap: break-word;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .message.user {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--color-accent), #fb923c);
+    color: white;
+    border-bottom-right-radius: var(--radius-sm);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+  }
+  
+  .message.bot {
+    background: var(--color-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    border-bottom-left-radius: var(--radius-sm);
+  }
+  
+  /* Индикатор времени сообщения */
+  .message::after {
+    content: attr(data-time);
+    position: absolute;
+    bottom: -18px;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+  
+  .message.user::after {
+    right: 0;
+  }
+  
+  .message.bot::after {
+    left: 0;
+  }
+  
+  /* Форма ввода */
+  .composer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--color-border);
+    background: rgba(33, 33, 33, 0.8);
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+  
+  .composer textarea {
+    flex: 1;
+    min-height: 48px;
+    max-height: 120px;
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    border: 1px solid var(--color-border);
+    background: var(--color-secondary);
+    color: var(--color-text-primary);
+    font-size: 15px;
+    line-height: 1.5;
+    resize: none;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+  }
+  
+  .composer textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-light);
+  }
+  
+  .composer textarea::placeholder {
+    color: var(--color-text-muted);
+  }
+  
+  .composer button {
+    padding: 14px 28px;
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+    height: 52px;
+    font-size: 15px;
+    min-width: 120px;
+  }
+  
+  .composer button:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+  }
+  
+  .composer button:active {
+    transform: translateY(0);
+  }
+  
+  .composer button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* ===== ПАНЕЛЬ РЕКОМЕНДАЦИЙ ===== */
+  .ai-recommendations {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 24px;
+    width: calc(100% - 48px);
+    max-width: 800px;
+    z-index: 1000;
+    transition: transform 0.3s ease, left 0.3s ease;
+    will-change: transform; /* Оптимизация анимации */
+  }
+  
+  /* Когда корзина открыта - сдвигаем рекомендации влево */
+  body.cart-open .ai-recommendations {
+    transform: translateX(-50%) translateX(-200px);
+  }
+  
+  .mini-bar {
+    background: var(--color-surface);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-card);
+  }
+  
+  .mini-bar:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  }
+  
+  .mini-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .mini-bar-title {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-size: 16px;
+  }
+  
+  .mini-bar-subtitle {
+    color: var(--color-text-muted);
+    font-size: 14px;
+  }
+  
+  #toggleRecs {
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-width: 100px;
+  }
+  
+  #toggleRecs:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+  }
+  
+  /* Панель рекомендаций */
+  .recommendation-panel {
+    margin-top: 12px;
+    background: var(--color-surface);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    padding: 24px;
+    box-shadow: var(--shadow-elevated);
+    display: none;
+    animation: slideUp var(--transition-base);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .recommendation-panel.open {
+    display: block;
+  }
+  
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  
+  .dish-card {
+    background: var(--color-secondary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    transition: all var(--transition-fast);
+    height: 100%;
+  }
+  
+  .dish-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-accent);
+    box-shadow: 0 12px 30px rgba(249, 115, 22, 0.2);
+  }
+  
+  .dish-card .img {
+    height: 140px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--color-primary);
+    position: relative;
+  }
+  
+  .dish-card .img::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.3));
+  }
+  
+  .dish-card .body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: calc(100% - 140px);
+  }
+  
+  .dish-card h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.4;
+  }
+  
+  .dish-card p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    max-height: 4.5em;
+  }
+  
+  .dish-card .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+  }
+  
+  .dish-card .price {
+    font-weight: 700;
+    color: var(--color-accent);
+    font-size: 18px;
+  }
+  
+  .dish-card button {
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-weight: 500;
+  }
+  
+  .dish-card .add-btn {
+    background: var(--color-accent);
+    color: white;
+  }
+  
+  .dish-card .add-btn:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+  }
+  
+  .dish-card .more-btn {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+  }
+  
+  .dish-card .more-btn:hover {
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+  
+  /* Состояние пустых рекомендаций */
+  .empty-recommendations {
+    text-align: center;
+    padding: 40px;
+    color: var(--color-text-muted);
+  }
+  
+  /* ===== АДАПТИВНОСТЬ ===== */
+  @media (max-width: 1024px) {
+    /* На планшетах сдвигаем меньше */
+    body.cart-open .ai-page-wrapper {
+        transform: translateX(-150px);
+        margin-right: 350px;
+    }
+    
+    body.cart-open .ai-recommendations {
+        transform: translateX(-50%) translateX(-150px);
+    }
+    
+    .ai-chat-card {
+      max-width: 95%;
+      height: 70vh;
+      min-height: 500px;
+    }
+    
+    .cards {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    .message {
+      max-width: 85%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .ai-page-wrapper {
+      margin: 20px auto;
+      min-height: calc(100vh - 100px);
+    }
+    
+    /* На мобильных сдвигаем по-другому */
+    body.cart-open .ai-page-wrapper {
+        transform: translateX(0);
+        margin-right: 0;
+        margin-left: -80%; /* Сдвигаем влево показывая часть корзины */
+    }
+    
+    body.cart-open .ai-recommendations {
+        transform: translateX(-50%) translateX(-40%);
+        max-width: 90%;
+    }
+    
+    .ai-chat-card {
+      height: 68vh;
+      min-height: 450px;
+      border-radius: var(--radius-md);
+    }
+    
+    .ai-recommendations {
+      width: calc(100% - 24px);
+      bottom: 12px;
+    }
+    
+    .messages {
+      padding: 16px;
+      gap: 16px;
+    }
+    
+    .composer {
+      padding: 16px;
+    }
+    
+    .composer button {
+      padding: 12px 20px;
+      min-width: 100px;
+    }
+    
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .ai-chat-card {
+      height: 65vh;
+      min-height: 400px;
+    }
+    
+    /* На очень маленьких экранах корзина открывается поверх */
+    body.cart-open .ai-page-wrapper {
+        margin-left: 0;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    
+    body.cart-open .ai-recommendations {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    
+    .ai-chat-header {
+      padding: 16px;
+    }
+    
+    .ai-chat-title {
+      font-size: 18px;
+    }
+    
+    .message {
+      max-width: 90%;
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+    
+    .composer {
+      flex-direction: column;
+    }
+    
+    .composer textarea {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    
+    .composer button {
+      width: 100%;
+      height: 48px;
+    }
+    
+    .mini-bar {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+      padding: 14px;
+    }
+    
+    #toggleRecs {
+      width: 100%;
+    }
+    
+    .dish-card .row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    
+    .dish-card .row > div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+  
+  /* Для очень маленьких экранов */
+  @media (max-height: 600px) {
+    .ai-chat-card {
+      height: 60vh;
+      min-height: 350px;
+    }
+    
+    .ai-chat-card.with-recs {
+      margin-bottom: 250px;
+    }
+    
+    .recommendation-panel {
+      max-height: 250px;
+    }
+    
+    .dish-card .img {
+      height: 100px;
+    }
+  }
+</style>
+</head>
+<body class="page">
+
+ <!-- Шапка сайта -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <!-- Кнопка Главная слева -->
+                <a href="../index.html" class="nav-btn">Главная</a>
+                
+                <!-- Правая часть навигации -->
+                <div class="nav-right">
+                    <a href="about.html" class="nav-btn">О нас</a>
+                    <a href="contacts.html" class="nav-btn">Контакты</a>
+                    <button class="nav-btn login-btn" id="loginBtn" type="button">Войти</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Кнопка открытия корзины (из menu.html) -->
+    <button class="cart-toggle" id="cartToggle" type="button">
+        <span class="cart-icon">🛒</span>
+        <span class="cart-count" id="cartCount">0</span>
+    </button>
+
+    <!-- Панель корзины (из menu.html) -->
+    <aside class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2 class="cart-title">Ваш заказ</h2>
+            <button class="cart-close" id="cartClose" type="button">&times;</button>
+        </div>
+        
+        <div class="cart-content">
+            <div class="cart-items" id="cartItems">
+                <!-- Товары будут добавляться динамически -->
+                <div class="empty-cart" id="emptyCart">
+                    <p>Корзина пуста</p>
+                </div>
+            </div>
+            
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span class="total-label">Итого:</span>
+                    <span class="total-amount" id="totalAmount">0₽</span>
+                </div>
+                <button class="checkout-btn" id="checkoutBtn" disabled>Оформить заказ</button>
+            </div>
+        </div>
+    </aside>
+
+  <div class="ai-page-wrapper">
+    <section class="ai-chat-card" role="main" aria-labelledby="chatTitle">
+      <div class="ai-chat-header">
+        <div>
+          <h1 class="ai-chat-title" id="chatTitle">Ваш официант: Aiгерим</h1>
+          <div class="ai-chat-subtitle">Я помогу выбрать блюдо и добавлю его в корзину</div>
+        </div>
+      </div>
+
+      <div class="messages" id="messages" aria-live="polite"></div>
+
+      <div class="composer">
+        <textarea 
+          id="chatInput" 
+          placeholder="Напишите сообщение..." 
+          aria-label="Сообщение с ИИ"
+          rows="1"
+        ></textarea>
+        <button id="sendBtn">Отправить</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Рекомендации снизу -->
+  <div class="ai-recommendations" id="aiRecs">
+    <div class="mini-bar" id="miniBar">
+      <div class="mini-bar-content">
+        <div>
+          <div class="mini-bar-title">Рекомендации от ИИ</div>
+          <div class="mini-bar-subtitle" id="miniSubtitle">Нажмите, чтобы развернуть</div>
+        </div>
+      </div>
+      <button id="toggleRecs" aria-expanded="false">Развернуть</button>
+    </div>
+
+    <div class="recommendation-panel" id="recPanel" role="region" aria-hidden="true">
+      <div class="cards" id="recCards"></div>
+    </div>
+  </div>
+
+  <!-- Подключаем скрипт корзины -->
+ <script>
+    // ==============================
+    // КОНФИГУРАЦИЯ КОРЗИНЫ (ТОЧНО КАК В MENU.JS)
+    // ==============================
+    const CONFIG = {
+        CART: {
+            STORAGE_KEY: 'tea_house_cart'
+        }
+    };
+
+    // ==============================
+    // СОСТОЯНИЕ КОРЗИНЫ
+    // ==============================
+    let cart = [];
+    let isCartOpen = false;
+
+    // ==============================
+    // ОСНОВНЫЕ ФУНКЦИИ КОРЗИНЫ (КАК В MENU.JS)
+    // ==============================
+
+    /**
+     * Загрузка корзины из localStorage
+     */
+    function loadCart() {
+        try {
+            const savedCart = localStorage.getItem(CONFIG.CART.STORAGE_KEY);
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки корзины:', error);
+            cart = [];
+        }
+    }
+
+    /**
+     * Сохранение корзины в localStorage
+     */
+    function saveCart() {
+        try {
+            localStorage.setItem(CONFIG.CART.STORAGE_KEY, JSON.stringify(cart));
+        } catch (error) {
+            console.error('Ошибка сохранения корзины:', error);
+        }
+    }
+
+    /**
+     * Добавление товара в корзину (СИНХРОНИЗИРОВАНО С MENU.JS)
+     */
+    function addToCart(dishId, dishName = null, price = null) {
+        console.log('🛒 === ДОБАВЛЕНИЕ В КОРЗИНУ ===');
+        console.log(`  Полученные данные: ID=${dishId} (тип: ${typeof dishId}), name="${dishName}", price=${price}`);
+        
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Нормализуем ID к ЧИСЛУ
+        const numericId = Number(dishId);
+        console.log(`  Нормализованный ID: ${numericId} (тип: ${typeof numericId})`);
+        
+        // Если dishName и price не переданы, получаем из DOM
+        if (!dishName || !price) {
+            const dishCard = document.querySelector(`[data-dish-id="${numericId}"]`);
+            if (dishCard) {
+                const nameElement = dishCard.querySelector('h4');
+                const priceElement = dishCard.querySelector('.price');
+                
+                if (nameElement) {
+                    dishName = nameElement.textContent;
+                    console.log(`  Название из DOM: ${dishName}`);
+                }
+                if (priceElement) {
+                    const priceText = priceElement.textContent.replace('₽', '').trim();
+                    price = parseInt(priceText) || 0;
+                    console.log(`  Цена из DOM: ${price}`);
+                }
+            }
+        }
+
+        // Ищем товар в корзине (СТРОГОЕ СРАВНЕНИЕ как в menu.js)
+        const existingItem = cart.find(item => item.id === numericId);
+        console.log(`  Найден в корзине:`, existingItem);
+        
+        if (existingItem) {
+            existingItem.quantity += 1;
+            console.log(`  Увеличиваем количество: ${existingItem.quantity}`);
+        } else {
+            const newItem = {
+                id: numericId, // Сохраняем как ЧИСЛО
+                name: dishName || `Блюдо #${numericId}`,
+                price: price || 0,
+                quantity: 1
+            };
+            cart.push(newItem);
+            console.log(`  Добавляем новый товар:`, newItem);
+        }
+        
+        console.log(`  Корзина после добавления:`, cart);
+        saveCart();
+        updateCartUI(); // ОБЯЗАТЕЛЬНО вызываем обновление
+        
+        // Визуальный фидбек
+        showAddToCartFeedback(numericId);
+        
+        console.log('✅ === ТОВАР ДОБАВЛЕН ===\n');
+    }
+
+    /**
+     * Обновление количества товара
+     */
+    function updateCartItemQuantity(itemId, newQuantity) {
+        const numericId = Number(itemId);
+        const item = cart.find(item => item.id === numericId);
+        
+        if (item) {
+            if (newQuantity <= 0) {
+                removeFromCart(numericId);
+            } else {
+                item.quantity = newQuantity;
+                saveCart();
+                updateCartUI();
+            }
+        }
+    }
+
+    /**
+     * Удаление товара из корзины
+     */
+    function removeFromCart(itemId) {
+        const numericId = Number(itemId);
+        cart = cart.filter(item => item.id !== numericId);
+        saveCart();
+        updateCartUI();
+    }
+
+    /**
+     * Визуальный фидбек при добавлении в корзину
+     */
+    function showAddToCartFeedback(dishId) {
+        const numericId = Number(dishId);
+        const dishCard = document.querySelector(`[data-dish-id="${numericId}"]`);
+        
+        if (dishCard) {
+            dishCard.style.transform = 'scale(1.05)';
+            dishCard.style.boxShadow = '0 8px 25px rgba(205, 127, 50, 0.4)';
+            
+            setTimeout(() => {
+                dishCard.style.transform = '';
+                dishCard.style.boxShadow = '';
+            }, 300);
+        }
+    }
+
+    /**
+     * Обновление интерфейса корзины (ОЧЕНЬ ВАЖНО!)
+     */
+    function updateCartUI() {
+    console.log('🔄 === ОБНОВЛЕНИЕ ИНТЕРФЕЙСА КОРЗИНЫ ===');
+    console.log(`  Корзина:`, cart);
+    
+    // НАХОДИМ ЭЛЕМЕНТЫ (даже если они скрыты)
+    const cartCount = document.getElementById('cartCount');
+    const cartItems = document.getElementById('cartItems');
+    const emptyCart = document.getElementById('emptyCart');
+    const totalAmount = document.getElementById('totalAmount');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    
+    console.log('  Найденные элементы:', {
+        cartCount: !!cartCount,
+        cartItems: !!cartItems,
+        emptyCart: !!emptyCart,
+        totalAmount: !!totalAmount,
+        checkoutBtn: !!checkoutBtn
+    });
+    
+    // ЕСЛИ emptyCart НЕ НАЙДЕН - продолжаем работу без него
+    if (!cartCount || !cartItems || !totalAmount || !checkoutBtn) {
+        console.error('❌ Критические элементы корзины не найдены!');
+        return;
+    }
+    
+    // Обновляем счетчик
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartCount.textContent = totalItems;
+    console.log(`  Счетчик обновлен: ${totalItems}`);
+    
+    // Обновляем список товаров
+    if (cart.length === 0) {
+        // Если корзина пуста
+        if (emptyCart) {
+            emptyCart.style.display = 'block';
+        }
+        cartItems.innerHTML = '';
+        console.log('  Корзина пуста');
+    } else {
+        // Если в корзине есть товары
+        if (emptyCart) {
+            emptyCart.style.display = 'none';
+        }
+        
+        const itemsHTML = cart.map(item => `
+            <div class="cart-item" data-item-id="${item.id}">
+                <div class="item-info">
+                    <div class="item-name">${item.name || 'Неизвестный товар'}</div>
+                    <div class="item-price">${item.price || 0}₽</div>
+                </div>
+                <div class="item-quantity">
+                    <button class="quantity-btn minus" onclick="window.updateCartItemQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                    <span class="quantity-value">${item.quantity}</span>
+                    <button class="quantity-btn plus" onclick="window.updateCartItemQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                </div>
+                <button class="remove-btn" onclick="window.removeFromCart(${item.id})" title="Удалить">
+                    ×
+                </button>
+            </div>
+        `).join('');
+        
+        cartItems.innerHTML = itemsHTML;
+        console.log(`  Список товаров обновлен (${cart.length} позиций)`);
+    }
+    
+    // Обновляем итоговую сумму
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    totalAmount.textContent = `${total}₽`;
+    console.log(`  Итоговая сумма: ${total}₽`);
+    
+    // Активируем/деактивируем кнопку оформления
+    checkoutBtn.disabled = cart.length === 0;
+    console.log(`  Кнопка оформления: ${checkoutBtn.disabled ? 'отключена' : 'активна'}`);
+    
+    console.log('✅ === ИНТЕРФЕЙС ОБНОВЛЕН ===\n');
+}
+
+    /**
+     * Обработка оформления заказа
+     */
+    async function handleCheckout() {
+        if (cart.length === 0) return;
+        
+        try {
+            // Те же эндпоинты, что и в menu.js
+            const endpoints = ['/api/orders/create', '/api/orders'];
+            let success = false;
+            let responseData;
+            
+            // Подготовка items в форме [{dish_id, quantity}]
+            const items = cart.map(i => ({ dish_id: i.id, quantity: i.quantity }));
+            
+            for (const ep of endpoints) {
+                try {
+                    const res = await fetch(ep, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            table_number: "0",
+                            items: items,
+                            guest_phone: localStorage.getItem('guest_phone') || null,
+                            guest_name: localStorage.getItem('guest_name') || null
+                        })
+                    });
+                    
+                    if (!res.ok) continue;
+                    const j = await res.json();
+                    
+                    if (j && (j.success || j.order_id || j.id)) {
+                        success = true;
+                        responseData = j;
+                        break;
+                    }
+                } catch (e) { /* try next */ }
+            }
+
+            if (success) {
+                alert('Заказ успешно оформлен! Скоро мы его приготовим.');
+                cart = [];
+                saveCart();
+                updateCartUI();
+                closeCart();
+            } else {
+                throw new Error('Ошибка при создании заказа');
+            }
+            
+        } catch (error) {
+            console.error('Ошибка оформления заказа:', error);
+            alert('Произошла ошибка при оформлении заказа. Пожалуйста, попробуйте еще раз.');
+        }
+    }
+
+    /**
+     * Открытие/закрытие корзины
+     */
+    function toggleCart() {
+        const cartSidebar = document.getElementById('cartSidebar');
+        if (!cartSidebar) return;
+        
+        if (isCartOpen) {
+            closeCart();
+        } else {
+            openCart();
+        }
+    }
+
+    /**
+     * Открытие корзины
+     */
+    function openCart() {
+        const cartSidebar = document.getElementById('cartSidebar');
+        if (!cartSidebar) return;
+        
+        cartSidebar.classList.add('open');
+        document.body.classList.add('cart-open');
+        isCartOpen = true;
+        
+        if (window.innerWidth <= 768) {
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    /**
+     * Закрытие корзины
+     */
+    function closeCart() {
+        const cartSidebar = document.getElementById('cartSidebar');
+        if (!cartSidebar) return;
+        
+        cartSidebar.classList.remove('open');
+        document.body.classList.remove('cart-open');
+        isCartOpen = false;
+        document.body.style.overflow = '';
+    }
+
+    /**
+     * Обработка клика вне корзины для закрытия
+     */
+    function setupCartClickOutside() {
+        document.addEventListener('click', function(event) {
+            const cartSidebar = document.getElementById('cartSidebar');
+            const cartToggle = document.getElementById('cartToggle');
+            
+            if (isCartOpen && cartSidebar && !cartSidebar.contains(event.target) && 
+                cartToggle && !cartToggle.contains(event.target)) {
+                closeCart();
+            }
+        });
+    }
+
+    // ==============================
+    // ИНИЦИАЛИЗАЦИЯ КОРЗИНЫ
+    // ==============================
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('📦 === ИНИЦИАЛИЗАЦИЯ КОРЗИНЫ ===');
+        
+        // Загружаем корзину
+        loadCart();
+        console.log(`  Загружена корзина: ${cart.length} товаров`);
+        
+        updateCartUI();
+        
+        // Настройка обработчиков событий для корзины
+        const cartToggle = document.getElementById('cartToggle');
+        const cartClose = document.getElementById('cartClose');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        
+        if (cartToggle) {
+            cartToggle.addEventListener('click', toggleCart);
+        }
+        
+        if (cartClose) {
+            cartClose.addEventListener('click', closeCart);
+        }
+        
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', handleCheckout);
+        }
+        
+        // Закрытие по ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isCartOpen) {
+                closeCart();
+            }
+        });
+        
+        // Закрытие по клику вне корзины
+        setupCartClickOutside();
+        
+        console.log('✅ === КОРЗИНА ИНИЦИАЛИЗИРОВАНА ===\n');
+    });
+
+    // ==============================
+    // ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ ONCLICK
+    // ==============================
+
+    window.addToCart = addToCart;
+    window.updateCartItemQuantity = updateCartItemQuantity;
+    window.removeFromCart = removeFromCart;
+    window.toggleCart = toggleCart;
+    window.closeCart = closeCart;
+</script>
+
+  <!-- ФУНКЦИОНАЛ ИИ-ОФИЦИАНТА -->
+  <script>
+    // ==============================
+    // ФУНКЦИОНАЛ ИИ-ОФИЦИАНТА
+    // ==============================
+    (function(){
+      // Элементы
+      const messagesEl = document.getElementById('messages');
+      const inputEl = document.getElementById('chatInput');
+      const sendBtn = document.getElementById('sendBtn');
+      const recPanel = document.getElementById('recPanel');
+      const recCards = document.getElementById('recCards');
+      const toggleRecs = document.getElementById('toggleRecs');
+      const aiChatCard = document.querySelector('.ai-chat-card');
+      const miniSubtitle = document.getElementById('miniSubtitle');
+
+      // Состояние
+      let allDishes = []; // Кэш всех блюд (как в menu.js)
+
+      // Авторесайз текстового поля
+      inputEl.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+
+      // Фокус на поле ввода при загрузке
+      setTimeout(() => inputEl.focus(), 100);
+
+      // Инициализация
+      appendMessage('Привет! Я — Aiгерим. Спроси меня о блюдах, диетах или вариантах для заказа.', 'bot');
+
+      // Слушатели
+      sendBtn.addEventListener('click', sendMessage);
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+      
+      toggleRecs.addEventListener('click', () => {
+        if (recPanel.classList.contains('open')) {
+          collapseRecs();
+        } else {
+          expandRecs();
+        }
+      });
+
+      // ==============================
+      // УТИЛИТЫ ПОИСКА
+      // ==============================
+
+      /**
+       * Ищет блюдо в основной БД по названию
+       */
+      function findDishByName(dishName) {
+          if (!dishName || !allDishes.length) return null;
+          
+          const cleanName = dishName.toLowerCase().trim();
+          
+          // 1. Точное совпадение
+          let dish = allDishes.find(d => 
+              d.name && d.name.toLowerCase().trim() === cleanName
+          );
+          
+          // 2. Частичное совпадение
+          if (!dish) {
+              dish = allDishes.find(d => 
+                  d.name && d.name.toLowerCase().includes(cleanName)
+              );
+          }
+          
+          // 3. Поиск по части названия
+          if (!dish) {
+              dish = allDishes.find(d => {
+                  if (!d.name) return false;
+                  const nameParts = cleanName.split(' ');
+                  return nameParts.some(part => 
+                      part.length > 2 && d.name.toLowerCase().includes(part)
+                  );
+              });
+          }
+          
+          return dish;
+      }
+
+      // ==============================
+      // ЗАГРУЗКА ДАННЫХ (как в menu.js)
+      // ==============================
+
+      /**
+       * Загрузка всех блюд из БД
+       */
+      async function loadAllDishes() {
+          try {
+              // Используем тот же database.js что и в menu.js
+              const { default: db } = await import('/db/database.js?v=' + Date.now());
+              
+              // Загружаем блюда
+              const dishesResponse = await db.getDishes();
+              
+              if (!dishesResponse) {
+                  throw new Error('Пустой ответ от сервера');
+              }
+              
+              let loadedDishes = [];
+              
+              if (Array.isArray(dishesResponse)) {
+                  loadedDishes = dishesResponse;
+              } else if (dishesResponse.data && Array.isArray(dishesResponse.data)) {
+                  loadedDishes = dishesResponse.data;
+              } else if (dishesResponse.success && dishesResponse.data && Array.isArray(dishesResponse.data)) {
+                  loadedDishes = dishesResponse.data;
+              } else if (typeof dishesResponse === 'object') {
+                  loadedDishes = Object.values(dishesResponse);
+              }
+              
+              // Normalization: convert any { id -> Id } expectations
+              loadedDishes = loadedDishes.map(d => {
+                  return Object.assign({}, d, { 
+                      Id: d.Id || d.id || d.dish_id,
+                      id: d.id || d.Id || d.dish_id,
+                      name: d.name || d.Name || ''
+                  });
+              });
+              
+              allDishes = loadedDishes;
+              return allDishes;
+              
+          } catch (error) {
+              console.error('Ошибка загрузки блюд:', error);
+              return [];
+          }
+      }
+
+      // Загружаем блюда при инициализации
+      (async function init() {
+          await loadAllDishes();
+      })();
+
+      // ==============================
+      // ОСНОВНЫЕ ФУНКЦИИ ЧАТА
+      // ==============================
+
+      function appendMessage(text, who = 'bot') {
+        const el = document.createElement('div');
+        el.className = 'message ' + (who === 'user' ? 'user' : 'bot');
+        el.innerText = text;
+        
+        // Добавляем время сообщения
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('ru-RU', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        el.setAttribute('data-time', timeString);
+        
+        messagesEl.appendChild(el);
+        
+        // Плавная прокрутка
+        messagesEl.scrollTo({
+          top: messagesEl.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+
+      async function sendMessage() {
+        const text = inputEl.value.trim();
+        if (!text) return;
+        
+        // Блокируем кнопку на время отправки
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Отправка...';
+        
+        appendMessage(text, 'user');
+        inputEl.value = '';
+        inputEl.style.height = 'auto';
+        
+        try {
+          const res = await fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text, top_k: 3 })
+          });
+          
+          if (!res.ok) throw new Error('Ошибка сети: ' + res.status);
+          const payload = await res.json();
+          
+          if (!payload || !payload.success) {
+            appendMessage('ИИ временно недоступен. Попробуйте позже.', 'bot');
+            return;
+          }
+
+          const data = payload.data || {};
+          const message = data.message || 'Готово.';
+          appendMessage(message, 'bot');
+
+          const suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
+          if (suggestions.length > 0) {
+            renderRecommendations(suggestions.slice(0, 3));
+            expandRecs();
+          } else {
+            collapseRecs();
+          }
+
+        } catch (err) {
+          console.error(err);
+          appendMessage('Произошла ошибка при обращении к серверу.', 'bot');
+        } finally {
+          // Восстанавливаем кнопку
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Отправить';
+        }
+      }
+
+      async function renderRecommendations(items) {
+        recCards.innerHTML = '';
+        
+        if (!items || items.length === 0) {
+          const emptyMsg = document.createElement('div');
+          emptyMsg.className = 'empty-recommendations';
+          emptyMsg.innerHTML = '<p>Рекомендации будут отображаться здесь</p>';
+          recCards.appendChild(emptyMsg);
+          return;
+        }
+
+        // Если кэш пуст, загружаем снова
+        if (allDishes.length === 0) {
+          await loadAllDishes();
+        }
+
+        items.forEach(item => {
+          if (typeof item === 'string') {
+            const box = document.createElement('div');
+            box.className = 'dish-card';
+            box.innerHTML = `
+              <div class="body">
+                <h4>${escapeHtml(item)}</h4>
+                <p>Рекомендованное блюдо</p>
+                <div class="row">
+                  <div class="price">—</div>
+                  <button class="more-btn">Подробнее</button>
+                </div>
+              </div>
+            `;
+            recCards.appendChild(box);
+            return;
+          }
+
+          const dish = item.dish || item;
+          const dishIdFromAI = dish.id ? Number(dish.id) : null;
+          
+          // Ищем блюдо в основной БД
+          let fullDish = null;
+          
+          if (dishIdFromAI) {
+            // Пробуем найти по ID
+            fullDish = allDishes.find(d => {
+              const dId = d.Id || d.id || d.dish_id;
+              return dId == dishIdFromAI;
+            });
+          }
+          
+          // Если не нашли по ID, ищем по названию
+          if (!fullDish && dish.name) {
+            fullDish = findDishByName(dish.name);
+          }
+          
+          // Используем полные данные если нашли, иначе базовые от ИИ
+          const finalDish = fullDish || dish;
+          const finalDishId = fullDish ? (fullDish.Id || fullDish.id) : dishIdFromAI;
+          
+          const dishName = finalDish.name || 'Блюдо';
+          const dishPrice = finalDish.price !== undefined ? Math.round(finalDish.price) : '';
+          const dishDescription = finalDish.description || dish.category || '';
+          
+          // Определяем путь к изображению
+          let imageUrl = '../static/images/no-image.png';
+          
+          if (finalDish.image_url && finalDish.image_url !== 'null' && finalDish.image_url !== 'undefined') {
+            if (finalDish.image_url.startsWith('/static/')) {
+              imageUrl = `..${finalDish.image_url}`;
+            } else if (finalDish.image_url.startsWith('http')) {
+              imageUrl = finalDish.image_url;
+            } else {
+              imageUrl = finalDish.image_url;
+            }
+          } else if (finalDish.image_path) {
+            if (finalDish.image_path.startsWith('/images/')) {
+              imageUrl = `../static${finalDish.image_path}`;
+            } else if (finalDish.image_path.startsWith('images/')) {
+              imageUrl = `../static/${finalDish.image_path}`;
+            } else {
+              imageUrl = `../static/images/${finalDish.image_path}`;
+            }
+          } else if (finalDishId) {
+            imageUrl = `../static/images/dishes/${finalDishId}.jpg`;
+          }
+
+          const card = document.createElement('div');
+          card.className = 'dish-card';
+          
+          if (finalDishId) {
+            card.setAttribute('data-dish-id', finalDishId);
+          }
+          
+          card.innerHTML = `
+            <div class="img" style="background-image:url('${escapeAttr(imageUrl)}'); background-color: var(--color-primary);" 
+                 onerror="this.style.backgroundImage='url(\'../static/images/no-image.png\')';">
+            </div>
+            <div class="body">
+              <h4>${escapeHtml(dishName)}</h4>
+              <p>${escapeHtml(dishDescription)}</p>
+              <div class="row">
+                <div class="price">${dishPrice ? dishPrice + ' ₽' : ''}</div>
+                <div style="display:flex;gap:8px;">
+                  <button class="add-btn" aria-label="Добавить ${escapeHtml(dishName)} в корзину"
+                          ${finalDishId ? '' : 'disabled'}
+                          data-dish-id="${finalDishId || ''}">
+                    ${finalDishId ? 'Заказать' : 'Недоступно'}
+                  </button>
+                  ${finalDishId ? `<button class="more-btn" aria-label="Подробнее о ${escapeHtml(dishName)}">Подробнее</button>` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+
+          // Настройка кнопок
+          if (finalDishId) {
+            const addBtn = card.querySelector('.add-btn');
+            const moreBtn = card.querySelector('.more-btn');
+            
+            addBtn.addEventListener('click', async function() {
+    // КРИТИЧЕСКО: Преобразуем в число перед передачей
+    const numericId = Number(finalDishId);
+    console.log(`🛒 Нажата кнопка для ID: ${numericId} (было: ${finalDishId}, тип: ${typeof finalDishId})`);
+    
+    await window.addToCart(numericId, dishName, dishPrice);
+    appendMessage('Добавил "' + dishName + '" в корзину ✓', 'bot');
+});
+            
+            if (moreBtn) {
+              moreBtn.addEventListener('click', () => openDishDetails(finalDishId));
+            }
+          } else {
+            const addBtn = card.querySelector('.add-btn');
+            addBtn.disabled = true;
+            addBtn.title = 'ID блюда не найден';
+          }
+
+          recCards.appendChild(card);
+        });
+        
+        // Обновляем подзаголовок
+        const count = items.length;
+        const wordForm = getRussianWordForm(count, ['рекомендация', 'рекомендации', 'рекомендаций']);
+        miniSubtitle.textContent = `${count} ${wordForm}`;
+      }
+
+      function openDishDetails(dishId) {
+        if (!dishId) return;
+        window.location.href = '/menu/dishes/' + dishId;
+      }
+
+      function expandRecs() {
+        recPanel.classList.add('open');
+        recPanel.setAttribute('aria-hidden', 'false');
+        toggleRecs.textContent = 'Свернуть';
+        toggleRecs.setAttribute('aria-expanded', 'true');
+        aiChatCard.classList.add('with-recs');
+      }
+
+      function collapseRecs() {
+        recPanel.classList.remove('open');
+        recPanel.setAttribute('aria-hidden', 'true');
+        toggleRecs.textContent = 'Развернуть';
+        toggleRecs.setAttribute('aria-expanded', 'false');
+        aiChatCard.classList.remove('with-recs');
+      }
+
+      // ==============================
+      // УТИЛИТЫ
+      // ==============================
+
+      function escapeHtml(s) {
+        if (!s) return '';
+        const div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
+      
+      function escapeAttr(s) {
+        return escapeHtml(s).replace(/'/g, '&#39;').replace(/"/g, '&#34;');
+      }
+      
+      function getRussianWordForm(number, words) {
+        const cases = [2, 0, 1, 1, 1, 2];
+        return words[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[Math.min(number % 10, 5)]];
+      }
+
+    })();
+  </script>
+
+</body>
+</html>

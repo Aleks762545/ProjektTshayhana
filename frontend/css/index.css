@@ -1,0 +1,491 @@
+/* ==============================
+   СТИЛИ ГЛАВНОЙ СТРАНИЦЫ (ТЕМНАЯ ТЕМА)
+   ============================== */
+
+/* Герой-секция */
+.hero {
+    padding: 100px 0;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.hero-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    width: 100%;
+}
+
+/* Приветственная секция */
+.welcome-section {
+    text-align: left;
+}
+
+.welcome-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 25px;
+    color: var(--text-primary);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-subtitle {
+    font-size: 1.4rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    font-style: italic;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Кнопки действий */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    align-items: flex-start;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    padding: 22px 35px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    text-decoration: none;
+    border-radius: 15px;
+    transition: all 0.4s ease;
+    min-width: 240px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.action-btn:hover::before {
+    left: 100%;
+}
+
+.action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(205, 127, 50, 0.3);
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+}
+
+.action-btn--menu {
+    background: linear-gradient(135deg, #cd7f32, #b56c28);
+}
+
+.action-btn--ai {
+    background: linear-gradient(135deg, #8b7355, #6d5b45);
+}
+
+.action-btn--ai:hover {
+    background: linear-gradient(135deg, #9c8465, #7d6b55);
+    box-shadow: 0 8px 25px rgba(139, 115, 85, 0.3);
+}
+
+.btn-icon {
+    font-size: 1.8rem;
+    margin-right: 15px;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.btn-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Секция новостей */
+.news-section {
+    padding: 80px 0;
+    background: rgba(42, 42, 42, 0.8);
+    margin-top: 60px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 50px;
+    color: var(--text-primary);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.news-container {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 60px;
+}
+
+.news-cards {
+    display: flex;
+    gap: 25px;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    padding: 15px 5px;
+}
+
+.news-card {
+    flex: 0 0 calc(25% - 19px);
+    background: rgba(58, 58, 58, 0.9);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.4s ease;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(5px);
+}
+
+.news-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(205, 127, 50, 0.2);
+    border-color: var(--primary-color);
+}
+
+.news-card__title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--primary-light);
+    line-height: 1.3;
+}
+
+.news-card__description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+.news-card__date {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Кнопки навигации новостей */
+.news-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.news-nav-btn:hover {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(205, 127, 50, 0.4);
+}
+
+.news-nav-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.news-nav-prev {
+    left: 10px;
+}
+
+.news-nav-next {
+    right: 10px;
+}
+
+/* Модальное окно регистрации */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background: rgba(42, 42, 42, 0.95);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 450px;
+    width: 90%;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(10px);
+    position: relative;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 2rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: var(--primary-color);
+}
+
+.modal-title {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* Форма регистрации */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-group input {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: rgba(58, 58, 58, 0.8);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(205, 127, 50, 0.2);
+}
+
+.form-group input::placeholder {
+    color: var(--text-muted);
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(205, 127, 50, 0.3);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+.auth-message {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.95rem;
+    display: none;
+}
+
+.auth-message.success {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+    display: block;
+}
+
+.auth-message.error {
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    display: block;
+}
+
+/* Индикатор прокрутки */
+.news-scroll-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 30px;
+}
+
+.scroll-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.scroll-dot.active {
+    background: var(--primary-color);
+    transform: scale(1.2);
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+    .news-card {
+        flex: 0 0 calc(33.333% - 17px);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 50px;
+        text-align: center;
+    }
+    
+    .welcome-title {
+        font-size: 2.8rem;
+    }
+    
+    .welcome-subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .action-buttons {
+        align-items: center;
+    }
+    
+    .action-btn {
+        min-width: 220px;
+        padding: 20px 30px;
+    }
+    
+    .news-card {
+        flex: 0 0 calc(50% - 13px);
+    }
+    
+    .news-container {
+        padding: 0 40px;
+    }
+    
+    .modal-content {
+        padding: 30px 25px;
+        margin: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .news-card {
+        flex: 0 0 100%;
+    }
+    
+    .news-container {
+        padding: 0 20px;
+    }
+    
+    .welcome-title {
+        font-size: 2.2rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .news-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
+
+/* Анимации */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-content > * {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.welcome-section {
+    animation-delay: 0.2s;
+}
+
+.action-buttons {
+    animation-delay: 0.4s;
+}

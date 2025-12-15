@@ -1,0 +1,145 @@
+<!-- project_main/frontend/admin/html/Components.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Чайхана — Admin / Компоненты</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/admin/css/admin.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">Чайхана — Admin</div>
+      <button class="navbtn" onclick="location.href='/admin/html/orders.html'">Текущие заказы</button>
+      <button class="navbtn" onclick="location.href='/admin/html/menu.html'">Редактирование меню</button>
+      <button class="navbtn" onclick="location.href='/admin/html/news.html'">Новости</button>
+      <button class="navbtn" onclick="location.href='/admin/html/metrics.html'">Метрики</button>
+      <button class="navbtn active" onclick="location.href='/admin/html/Components.html'">Компоненты</button>
+      <div style="flex:1"></div>
+      <div class="hint">Server API: /api/...</div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <section class="summary-grid">
+        <div class="tile"><h3>Категорий</h3><p id="count_categories">—</p></div>
+        <div class="tile"><h3>Ингредиентов</h3><p id="count_ingredients">—</p></div>
+        <div class="tile"><h3>Тегов</h3><p id="count_tags">—</p></div>
+      </section>
+
+      <!-- Форма добавления -->
+      <section class="form">
+        <h3 style="margin:0;color:var(--muted)">Добавить новую запись</h3>
+        <div class="row">
+          <select class="input" id="new_type">
+            <option value="category">Категория</option>
+            <option value="ingredient">Ингредиент</option>
+            <option value="tag">Тег</option>
+          </select>
+          <input class="input" type="text" id="new_name" placeholder="Название">
+          <button class="primary" id="btn_add">Добавить</button>
+        </div>
+        <div class="warn" id="warn_duplicate" style="display:none">Такое название уже существует!</div>
+      </section>
+
+      <!-- Списки -->
+      <section class="orders-layout">
+        <div class="orders-col">
+          <h3 style="margin:0;color:var(--muted)">Категории</h3>
+          <div id="list_categories"></div>
+        </div>
+        <div class="orders-col">
+          <h3 style="margin:0;color:var(--muted)">Ингредиенты</h3>
+          <div id="list_ingredients"></div>
+        </div>
+        <div class="orders-col">
+          <h3 style="margin:0;color:var(--muted)">Теги</h3>
+          <div id="list_tags"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API = {
+      categories: '/api/categories',
+      ingredients: '/api/ingredients',
+      tags: '/api/tags',
+      dishes: '/api/dishes'
+    };
+
+    const state = {
+      categories: [],
+      ingredients: [],
+      tags: [],
+      dishes: []
+    };
+
+    const qs = sel => document.querySelector(sel);
+    const ce = tag => document.createElement(tag);
+
+    function renderList(type, containerId) {
+      const container = qs(containerId);
+      container.innerHTML = '';
+      const items = state[type];
+      items.forEach(item => {
+        const div = ce('div');
+        div.className = 'order-card';
+        const usage = countUsage(type, item.id);
+        div.innerHTML = `<div class="meta"><span>${item.name}</span><span>Используется: ${usage}</span></div>`;
+        container.appendChild(div);
+      });
+      qs(`#count_${type}`).textContent = items.length;
+    }
+
+    function countUsage(type, id) {
+      let count = 0;
+      state.dishes.forEach(d => {
+        if (type === 'categories' && String(d.category_id) === String(id)) count++;
+        if (type === 'ingredients' && Array.isArray(d.ingredient_ids) && d.ingredient_ids.includes(id)) count++;
+        if (type === 'tags' && Array.isArray(d.tag_ids) && d.tag_ids.includes(id)) count++;
+      });
+      return count;
+    }
+
+    async function loadAll() {
+      const [catsRes, ingRes, tagsRes, dishesRes] = await Promise.all([
+        fetch(API.categories), fetch(API.ingredients), fetch(API.tags), fetch(API.dishes)
+      ]);
+      state.categories = await catsRes.json();
+      state.ingredients = await ingRes.json();
+      state.tags = await tagsRes.json();
+      state.dishes = await dishesRes.json();
+      renderList('categories','#list_categories');
+      renderList('ingredients','#list_ingredients');
+      renderList('tags','#list_tags');
+    }
+
+    async function addNew() {
+      const type = qs('#new_type').value;
+      const name = qs('#new_name').value.trim();
+      if (!name) return;
+      const arr = state[type+'s'];
+      if (arr.some(x => x.name.toLowerCase() === name.toLowerCase())) {
+        qs('#warn_duplicate').style.display = 'block';
+        return;
+      }
+      qs('#warn_duplicate').style.display = 'none';
+      const url = API[type+'s'];
+      const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+      if (res.ok) {
+        await loadAll();
+        qs('#new_name').value = '';
+      }
+    }
+
+    qs('#btn_add').onclick = addNew;
+
+    (async function init(){
+      await loadAll();
+    })();
+  </script>
+</body>
+</html>

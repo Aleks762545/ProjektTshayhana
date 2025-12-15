@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Админ — добавить блюдо</title>
+</head>
+<body>
+
+<h1>Добавление блюда</h1>
+
+<form id="dishForm">
+    <label>Название:</label><br>
+    <input type="text" id="name"><br><br>
+
+    <label>Описание:</label><br>
+    <textarea id="description"></textarea><br><br>
+
+    <label>Цена:</label><br>
+    <input type="number" id="price"><br><br>
+
+    <label>Категория ID:</label><br>
+    <input type="number" id="category_id"><br><br>
+
+    <label>Изображение:</label><br>
+    <input type="file" id="imageFile"><br><br>
+
+    <button type="submit">Создать блюдо</button>
+</form>
+
+<script type="module">
+const API = '/api';
+
+document.getElementById("dishForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    let image_path = null;
+    let image_url = null;
+
+    // Если выбрана картинка — загружаем её
+    const fileInput = document.getElementById("imageFile");
+    if (fileInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        const uploadRes = await fetch(`${API}/upload/image`, {
+            method: "POST",
+            body: formData
+        });
+
+        const uploadJson = await uploadRes.json();
+
+        image_path = uploadJson.image_path;
+        image_url  = uploadJson.image_url;
+    }
+
+    // Создаём блюдо
+    const payload = {
+        name: document.getElementById("name").value,
+        description: document.getElementById("description").value,
+        price: Number(document.getElementById("price").value),
+        category_id: Number(document.getElementById("category_id").value),
+        image_path,
+        image_url
+    };
+
+    const res = await fetch(`${API}/dishes`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    });
+
+    const json = await res.json();
+    alert("Блюдо создано!");
+});
+</script>
+
+</body>
+</html>

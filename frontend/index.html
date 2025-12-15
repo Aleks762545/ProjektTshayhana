@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чайхана «У Тимура» - Главная</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <!-- Шапка сайта -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <!-- Кнопка Главная слева -->
+                <a href="index.html" class="nav-btn nav-btn--active">Главная</a>
+                
+                <!-- Правая часть навигации -->
+                <div class="nav-right">
+                    <a href="pages/about.html" class="nav-btn">О нас</a>
+                    <a href="pages/contacts.html" class="nav-btn">Контакты</a>
+                    <button class="nav-btn login-btn" id="loginBtn" type="button">Войти</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="main">
+        <div class="container">
+            <!-- Верхняя секция с приветствием и кнопками -->
+            <section class="hero">
+                <div class="hero-content">
+                    <!-- Левая часть: приветствие -->
+                    <div class="welcome-section">
+                        <h1 class="welcome-title">Добро пожаловать в чайхану<br>«У Тимура»</h1>
+                        <p class="welcome-subtitle">Кухня средней Азии и мира,<br>и теплая уютная атмосфера</p>
+                    </div>
+                    
+                    <!-- Правая часть: кнопки навигации -->
+                    <div class="action-buttons">
+                        <a href="pages/menu.html" class="action-btn action-btn--menu">
+                            <span class="btn-icon"></span>
+                            <span class="btn-text">Меню</span>
+                        </a>
+                        <a href="pages/ai-waiter.html" class="action-btn action-btn--ai">
+                            <span class="btn-icon"></span>
+                            <span class="btn-text">AI-Официант</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Секция новостей и акций -->
+            <section class="news-section">
+                <h2 class="section-title">Новости и акции</h2>
+                <div class="news-container">
+                    <!-- Контейнер для карточек -->
+                    <div class="news-cards" id="newsCards">
+                        <!-- Карточки будут добавляться через JavaScript -->
+                    </div>
+                    
+                    <!-- Кнопки навигации -->
+                    <button class="news-nav-btn news-nav-prev" id="prevBtn" type="button">‹</button>
+                    <button class="news-nav-btn news-nav-next" id="nextBtn" type="button">›</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Подвал -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2024 Чайхана «У Тимура». Все права защищены.</p>
+                <div class="footer-links">
+                    <a href="pages/about.html">О нас</a>
+                    <a href="pages/contacts.html">Контакты</a>
+                    <a href="#">Политика конфиденциальности</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Модальное окно регистрации -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal" type="button">&times;</button>
+            <h2 class="modal-title">Зарегистрируйтесь чтобы получать персональные рекомендации!</h2>
+            
+            <form class="auth-form" id="authForm">
+                <div class="form-group">
+                    <label for="phone">Номер телефона *</label>
+                    <input type="tel" id="phone" name="phone" required 
+                           placeholder="+7 (999) 999-99-99">
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Имя *</label>
+                    <input type="text" id="name" name="name" required 
+                           placeholder="Ваше имя">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email (необязательно)</label>
+                    <input type="email" id="email" name="email" 
+                           placeholder="your@email.com">
+                </div>
+                
+                <button type="submit" class="submit-btn">Зарегистрироваться / Войти</button>
+            </form>
+            
+            <div class="auth-message" id="authMessage"></div>
+        </div>
+    </div>
+
+    <!-- Подключаем скрипты -->
+    <script src="js/index.js"></script>
+</body>
+</html>

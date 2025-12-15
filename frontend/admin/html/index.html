@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Админка — Чайхана</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+  <div class="brand">Чайхана — Admin</div>
+  <button class="navbtn" onclick="location.href='/admin/html/orders.html'">Текущие заказы</button>
+  <button class="navbtn" onclick="location.href='/admin/html/menu.html'">Редактирование меню</button>
+  <button class="navbtn" onclick="location.href='/admin/html/news.html'">Новости</button>
+  <button class="navbtn" onclick="location.href='/admin/html/metrics.html'">Метрики</button>
+  <button class="navbtn" onclick="location.href='/admin/html/Components.html'">Компоненты</button>
+  <div style="flex:1"></div>
+  <div class="hint">Server API: /api/...</div>
+</aside>
+
+
+    <main class="main">
+      <div class="summary-grid" id="summaryGrid">
+        <div class="tile"><h3>Всего заказов</h3><p id="totalOrders">—</p></div>
+        <div class="tile"><h3>Заказов сегодня</h3><p id="ordersToday">—</p></div>
+        <div class="tile"><h3>Avg. response (ms)</h3><p id="avgResp">—</p></div>
+        <div class="tile"><h3>Блюд в базе</h3><p id="dishesCount">—</p></div>
+      </div>
+
+      <section style="margin-top:12px">
+        <h2 style="margin:0 0 8px 0">Быстрые действия</h2>
+        <div style="display:flex;gap:8px">
+          <button class="primary" id="openOrders">Открыть заказы</button>
+          <button class="primary" id="openMenu">Открыть меню</button>
+          <button class="primary" id="openNews">Новости</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { AdminAPI, toast } from '/admin/js/admin-common.js';
+    // summary fetches
+    async function fetchSummary(){
+      try{
+        // try metrics endpoint(s)
+        const data = await AdminAPI.tryEndpoints(['/api/metrics/summary','/api/admin/metrics/summary','/api/admin/metrics']);
+        document.getElementById('totalOrders').textContent = data.total_orders ?? data.totalOrders ?? '—';
+        document.getElementById('ordersToday').textContent = data.orders_today ?? data.ordersToday ?? '—';
+        document.getElementById('avgResp').textContent = data.avg_response_time_ms ?? data.avgResponse ?? '—';
+        document.getElementById('dishesCount').textContent = data.vector_db_count ?? data.dishes_count ?? '—';
+      }catch(e){
+        console.warn(e); toast('Не удалось получить метрики: ' + e.message);
+      }
+    }
+    document.getElementById('openOrders').onclick = ()=>location.href='/admin/html/orders.html';
+    document.getElementById('openMenu').onclick = ()=>location.href='/admin/html/menu.html';
+    document.getElementById('openNews').onclick = ()=>location.href='/admin/html/news.html';
+    fetchSummary();
+  </script>
+</body>
+</html>

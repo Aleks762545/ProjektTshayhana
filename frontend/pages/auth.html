@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход / Регистрация - Чайхана</title>
+    
+    <!-- ПОДКЛЮЧЕНИЕ СТИЛЕЙ -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+    <!-- ФОН СТРАНИЦЫ -->
+    <div class="background-container">
+        <div class="background-image"></div>
+        <div class="overlay"></div>
+    </div>
+
+    <!-- ШАПКА САЙТА -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a href="../index.html" style="color: inherit; text-decoration: none;">
+                    <h1>Чайхана</h1>
+                </a>
+            </div>
+            <nav class="navigation">
+                <a href="menu.html" class="nav-link">Меню</a>
+                <a href="booking.html" class="nav-link">Бронирование</a>
+                <a href="ai-waiter.html" class="nav-link">ИИ Официант</a>
+                <a href="about.html" class="nav-link">О нас</a>
+                <a href="contacts.html" class="nav-link">Контакты</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ОСНОВНОЕ СОДЕРЖИМОЕ -->
+    <main class="auth-main">
+        <div class="container">
+            <div class="auth-container">
+                <!-- ФОРМА РЕГИСТРАЦИИ -->
+                <div class="auth-form" id="registerForm">
+                    <div class="auth-header">
+                        <h2>Регистрация</h2>
+                        <p>Создайте аккаунт для бронирований и заказов</p>
+                    </div>
+
+                    <form id="registrationForm">
+                        <div class="form-group">
+                            <label for="regName">Ваше имя *</label>
+                            <input type="text" id="regName" required placeholder="Введите ваше имя">
+                            <div class="error-message" id="nameError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="regPhone">Номер телефона *</label>
+                            <input type="tel" id="regPhone" required placeholder="+7 (XXX) XXX-XX-XX">
+                            <div class="error-message" id="phoneError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="regEmail">Email (необязательно)</label>
+                            <input type="email" id="regEmail" placeholder="email@example.com">
+                            <div class="error-message" id="emailError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="regPassword">Пароль *</label>
+                            <input type="password" id="regPassword" required placeholder="Не менее 6 символов">
+                            <div class="error-message" id="passwordError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="regConfirmPassword">Подтвердите пароль *</label>
+                            <input type="password" id="regConfirmPassword" required placeholder="Повторите пароль">
+                            <div class="error-message" id="confirmPasswordError"></div>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="agreeTerms" required>
+                            <label for="agreeTerms">
+                                Я соглашаюсь с <a href="#" class="link">правилами обработки персональных данных</a> и <a href="#" class="link">пользовательским соглашением</a>
+                            </label>
+                            <div class="error-message" id="termsError"></div>
+                        </div>
+
+                        <button type="submit" class="btn-auth" id="registerButton">
+                            <span class="btn-text">Зарегистрироваться</span>
+                            <span class="btn-loading" style="display: none;">Регистрация...</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-footer">
+                        <p>Уже есть аккаунт? <a href="#" class="link" id="showLoginForm">Войти</a></p>
+                    </div>
+                </div>
+
+                <!-- ФОРМА ВХОДА -->
+                <div class="auth-form" id="loginForm" style="display: none;">
+                    <div class="auth-header">
+                        <h2>Вход в аккаунт</h2>
+                        <p>Войдите в свой аккаунт</p>
+                    </div>
+
+                    <form id="loginFormElement">
+                        <div class="form-group">
+                            <label for="loginPhone">Номер телефона</label>
+                            <input type="tel" id="loginPhone" required placeholder="+7 (XXX) XXX-XX-XX">
+                            <div class="error-message" id="loginPhoneError"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginPassword">Пароль</label>
+                            <input type="password" id="loginPassword" required placeholder="Введите ваш пароль">
+                            <div class="error-message" id="loginPasswordError"></div>
+                        </div>
+
+                        <div class="form-options">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="rememberMe">
+                                <label for="rememberMe">Запомнить меня</label>
+                            </div>
+                            <a href="#" class="link">Забыли пароль?</a>
+                        </div>
+
+                        <button type="submit" class="btn-auth" id="loginButton">
+                            <span class="btn-text">Войти</span>
+                            <span class="btn-loading" style="display: none;">Вход...</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-footer">
+                        <p>Нет аккаунта? <a href="#" class="link" id="showRegisterForm">Зарегистрироваться</a></p>
+                    </div>
+                </div>
+
+                <!-- УСПЕШНАЯ РЕГИСТРАЦИЯ -->
+                <div class="auth-success" id="successMessage" style="display: none;">
+                    <div class="success-icon">✓</div>
+                    <h2>Регистрация успешна!</h2>
+                    <p>Ваш аккаунт был успешно создан. Теперь вы можете бронировать столики и делать заказы.</p>
+                    <button class="btn-auth" id="continueButton">Продолжить</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ПОДКЛЮЧЕНИЕ СКРИПТОВ -->
+    <script src="../db/database.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>
